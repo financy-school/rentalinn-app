@@ -10,7 +10,7 @@ import {
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {CredentialsContext} from '../components/CredentialsContext';
+import {CredentialsContext} from '../context/CredentialsContext';
 import {handleSchoolUserLogin} from '../services/NetworkUtils';
 import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
 
@@ -20,7 +20,7 @@ const Login = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const {setStoredCredentials} = useContext(CredentialsContext);
+  const {setCredentials} = useContext(CredentialsContext);
   const {colors} = useTheme();
 
   const handleLogin = async () => {
@@ -32,16 +32,14 @@ const Login = ({navigation}) => {
     setLoading(true);
     try {
       const response = await handleSchoolUserLogin({email, password});
-      const {user, message} = response;
+
       const token = 'Bearer';
-      await AsyncStorage.setItem(
-        'financyCredentials',
-        JSON.stringify({...user, token}),
-      );
-      setStoredCredentials({...user, token});
-      navigation.navigate('Home');
+
+      console.log('Login Response:', response);
+      setCredentials({...response, token});
     } catch (error) {
       console.error('Login Error:', error);
+      console.error('Login Error:', JSON.stringify(error));
       setErrorMessage('Invalid email or password.');
     } finally {
       setLoading(false);

@@ -5,7 +5,7 @@ import Login from '../screens/Login';
 import SignUp from '../screens/Signup';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {CredentialsContext} from '../components/CredentialsContext';
+import {CredentialsContext} from '../context/CredentialsContext';
 import SplashScreen from '../components/SplashScreen';
 import DrawerStack from './DrawerNavigation';
 
@@ -13,7 +13,7 @@ const Stack = createNativeStackNavigator();
 
 const RootStack = () => {
   const [isLoading, setIsLoading] = React.useState(true);
-  const {storedCredentials} = React.useContext(CredentialsContext);
+  const {credentials} = React.useContext(CredentialsContext);
 
   React.useEffect(() => {
     setTimeout(() => {
@@ -40,8 +40,8 @@ const RootStack = () => {
             paddingLeft: 20,
           },
         }}
-        initialRouteName={storedCredentials ? 'DrawerStack' : 'Login'}>
-        {storedCredentials ? (
+        initialRouteName={credentials ? 'DrawerStack' : 'Login'}>
+        {credentials ? (
           <>
             <Stack.Screen
               options={{headerTintColor: primary}}

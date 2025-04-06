@@ -34,18 +34,21 @@ const BottomNavigation = () => {
           shadowRadius: 3.84,
           elevation: 5,
           position: 'absolute',
+          bottom: 15,
+          left: 20,
+          right: 20,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontFamily: 'Poppins-Regular',
+          fontFamily: 'Metropolis-Regular',
           marginBottom: 5,
         },
         headerShown: false,
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
+          if (route.name === 'Dashboard') {
+            iconName = focused ? 'view-dashboard' : 'view-dashboard-outline';
             return (
               <MaterialCommunityIcons
                 name={iconName}
@@ -53,8 +56,8 @@ const BottomNavigation = () => {
                 color={color}
               />
             );
-          } else if (route.name === 'Students') {
-            iconName = focused ? 'school' : 'school-outline';
+          } else if (route.name === 'Rooms') {
+            iconName = focused ? 'door' : 'door-closed';
             return (
               <MaterialCommunityIcons
                 name={iconName}
@@ -62,11 +65,12 @@ const BottomNavigation = () => {
                 color={color}
               />
             );
-          } else if (route.name === 'Staff') {
+          } else if (route.name === 'Tenants') {
             iconName = focused ? 'people' : 'people-outline';
             return <Ionicons name={iconName} size={size} color={color} />;
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'account' : 'account-outline';
+          } else if (route.name === 'Tickets') {
+            iconName = focused ? 'ticket' : 'ticket-outline';
+
             return (
               <MaterialCommunityIcons
                 name={iconName}
@@ -78,32 +82,32 @@ const BottomNavigation = () => {
         },
       })}>
       <Tab.Screen
-        name="Home"
+        name="Dashboard"
         component={Home}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Dashboard',
         }}
       />
 
       <Tab.Screen
-        name="Students"
+        name="Rooms"
         component={Home}
         options={{
-          tabBarLabel: 'Students',
+          tabBarLabel: 'Rooms',
         }}
       />
       <Tab.Screen
-        name="Staff"
+        name="Tenants"
         component={Home}
         options={{
-          tabBarLabel: 'Staff',
+          tabBarLabel: 'Tenants',
         }}
       />
       <Tab.Screen
-        name="Profile"
+        name="Tickets"
         component={Profile}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: 'Tickets',
         }}
       />
     </Tab.Navigator>

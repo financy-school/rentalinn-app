@@ -16,12 +16,11 @@ import {useNavigation} from '@react-navigation/native';
 import {academicMenu, accountMenu, actionMenu, exploreMenu} from './constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SvgUri} from 'react-native-svg';
-import {CredentialsContext} from '../../../components/CredentialsContext';
+import {CredentialsContext} from '../../../context/CredentialsContext';
 
 function DrawerContent(props) {
-  const {storedCredentials, setStoredCredentials} =
-    useContext(CredentialsContext);
-  const {first_name, last_name, email, phone_number} = storedCredentials;
+  const {credentials, setCredentials} = useContext(CredentialsContext);
+  const {owner_name, email, phone_number} = credentials;
   const navigation = useNavigation();
 
   const [expandedMenus, setExpandedMenus] = useState({});
@@ -34,7 +33,7 @@ function DrawerContent(props) {
   };
 
   const handleLogout = async () => {
-    setStoredCredentials(null);
+    setCredentials(null);
     await AsyncStorage.clear();
   };
 
@@ -165,7 +164,7 @@ function DrawerContent(props) {
           />
           <View style={{marginTop: 12}}>
             <Text style={{fontSize: 22, fontWeight: '600', color: '#000'}}>
-              {first_name} {last_name}
+              {owner_name}
             </Text>
             {email && (
               <Text style={{fontSize: 14, color: '#666', marginTop: 4}}>

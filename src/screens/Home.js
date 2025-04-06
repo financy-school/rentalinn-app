@@ -1,293 +1,315 @@
-import React, {useState, useEffect, useContext} from 'react';
-import axios from 'axios';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  SafeAreaView,
-  TextInput,
-  ScrollView,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Carousel from 'react-native-snap-carousel';
-import {CredentialsContext} from '../components/CredentialsContext';
-import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
-import {useNavigation, DrawerActions} from '@react-navigation/native';
-import * as Animatable from 'react-native-animatable';
+import React, {useContext} from 'react';
+import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {Appbar, Avatar, Button, Card, Text, useTheme} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Entypo from 'react-native-vector-icons/Entypo';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-const windowWidth = Dimensions.get('window').width;
-const itemsWidth = (windowWidth - 20) / 2;
-const sliderWidth = Dimensions.get('window').width - 10;
-const itemWidth = sliderWidth;
+import RevenueCard from '../components/cards/RevenueCard';
+import CircularIconsWithText from '../components/cards/CircularIcon';
+import {ThemeContext} from '../context/ThemeContext';
+import StandardAccordion from '../components/StandardAccordion/StandardAccordion';
+import StandardText from '../components/StandardText/StandardText';
+import StandardCard from '../components/StandardCard/StandardCard';
+import Gap from '../components/Gap/Gap';
 
-const Home = () => {
-  const navigation = useNavigation();
-  const {storedCredentials, setStoredCredentials} =
-    useContext(CredentialsContext);
-  const {
-    id,
-    first_name,
-    last_name,
-    email,
-    phone_number,
-    address,
-    role,
-    password,
-    onboarding_status,
-    school,
-  } = storedCredentials;
-
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Animatable.Text
-          style={styles.loadingText}
-          animation="fadeIn"
-          iterationCount="infinite"
-          direction="alternate">
-          Loading...
-        </Animatable.Text>
-      </View>
-    );
-  }
+const Home = ({navigation}) => {
+  const {theme: mode, toggleTheme} = useContext(ThemeContext);
+  const theme = useTheme();
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <ScrollView contentContainerStyle={{flexGrow: 1}}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                <MaterialCommunityIcons name="menu" size={35} color="#ffffff" />
-              </TouchableOpacity>
-              <View style={{marginLeft: 20}}>
-                <Text style={styles.headerTitle}>
-                  Good Morning {first_name}
-                </Text>
-                <Text style={styles.headerText}>Welcome to RentalInn</Text>
-              </View>
-            </View>
-            <TouchableOpacity onPress={() => console.log('Notifications')}>
-              <Ionicons name="notifications-circle" size={45} color="#fff" />
-            </TouchableOpacity>
-          </View>
+    <View
+      style={{flex: 1, backgroundColor: theme.colors.background, padding: 15}}>
+      <Appbar.Header style={{backgroundColor: 'transparent'}}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <Avatar.Icon
+            size={40}
+            icon="menu"
+            style={{backgroundColor: theme.colors.white}}
+            color={theme.colors.primary}
+          />
+        </TouchableOpacity>
+
+        <View style={{flex: 1, marginLeft: 10}}>
+          <StandardText size="md">Welcome</StandardText>
+          <StandardText size="lg" fontWeight="bold">
+            John Doe
+          </StandardText>
         </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('Notifications');
+          }}>
+          <Avatar.Icon
+            size={40}
+            icon="bell"
+            style={{backgroundColor: theme.colors.light_black}}
+            color="white"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleTheme} style={{marginLeft: 10}}>
+          <Avatar.Icon
+            size={40}
+            icon="theme-light-dark"
+            style={{backgroundColor: theme.colors.white}}
+            color={theme.colors.primary}
+          />
+        </TouchableOpacity>
+      </Appbar.Header>
+
+      <ScrollView>
+        <Gap size="md" />
+        <StandardAccordion
+          heading="Tenants"
+          icon={
+            <MaterialCommunityIcons
+              name="home"
+              size={20}
+              color={theme.colors.primary}
+            />
+          }
+          content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        />
+
+        <View
+          style={{
+            paddingHorizontal: 15,
+            marginTop: 10,
+            marginBottom: 10,
+          }}>
+          <StandardText size="lg" fontWeight="bold">
+            Quick Actions
+          </StandardText>
+        </View>
+
+        <CircularIconsWithText />
+
+        <Gap size="lg" />
+        <StandardCard
+          style={{
+            elevation: 2,
+          }}>
+          <StandardText size="lg" fontWeight="bold" textAlign="center">
+            Rent Details
+          </StandardText>
+          <View
+            style={{
+              backgroundColor: theme.colors.white,
+              padding: 15,
+              borderRadius: 10,
+              marginTop: 10,
+              shadowColor: theme.colors.primary,
+              shadowOffset: {width: 0, height: 2},
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                Paid
+              </StandardText>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                Not Paid
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                125
+              </StandardText>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                12
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                Tenants
+              </StandardText>
+              <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                Tenants
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                On-time: 56
+              </StandardText>
+              <Button
+                mode="contained"
+                buttonColor={theme.colors.white}
+                onPress={() => {}}
+                style={{
+                  borderRadius: 5,
+                  borderColor: theme.colors.black,
+                  borderWidth: 1,
+                }}>
+                <MaterialCommunityIcons
+                  name="whatsapp"
+                  size={20}
+                  color={theme.colors.black}
+                />
+                <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                  REMIND TO PAY
+                </StandardText>
+              </Button>
+            </View>
+          </View>
+        </StandardCard>
+
+        <Gap size="lg" />
+        <StandardCard
+          style={{
+            elevation: 2,
+          }}>
+          <StandardText size="lg" fontWeight="bold" textAlign="center">
+            Other Stats
+          </StandardText>
+          <View
+            style={{
+              backgroundColor: theme.colors.white,
+              padding: 15,
+              borderRadius: 10,
+              marginTop: 10,
+              shadowColor: theme.colors.primary,
+              shadowOffset: {width: 0, height: 2},
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                Vacant Beds
+              </StandardText>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                Notice Period
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                12 / 125
+              </StandardText>
+              <StandardText
+                textAlign="center"
+                size="md"
+                fontWeight="bold"
+                style={{flex: 1}}>
+                2 / 12
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                Beds
+              </StandardText>
+              <StandardText textAlign="center" size="md" style={{flex: 1}}>
+                Tenants
+              </StandardText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginVertical: 10,
+                alignItems: 'center',
+              }}>
+              <Button
+                mode="contained"
+                buttonColor={theme.colors.black}
+                style={{
+                  width: '45%',
+                  alignSelf: 'center',
+                  marginTop: 10,
+                  marginBottom: 10,
+                  borderRadius: 5,
+                }}
+                onPress={() => {}}>
+                VIEW
+              </Button>
+              <Button
+                mode="contained"
+                buttonColor={theme.colors.black}
+                style={{
+                  width: '45%',
+                  alignSelf: 'center',
+                  marginTop: 10,
+                  marginBottom: 10,
+                  borderRadius: 5,
+                }}
+                onPress={() => {}}>
+                VIEW
+              </Button>
+            </View>
+          </View>
+
+          <Gap size="lg" />
+          <Gap size="lg" />
+        </StandardCard>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {},
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-
-  subtitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#ffffff',
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#5168B6',
-  },
-  carouselContainer: {
-    marginTop: 20,
-  },
-  carouselContentContainer: {
-    alignItems: 'center',
-  },
-  carouselItem: {
-    width: itemWidth,
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'green',
-    borderRadius: 10,
-  },
-  carouselItemText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  paginationContainer: {
-    marginTop: 10,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 5,
-  },
-  carouselItemImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    borderRadius: 10,
-  },
-
-  box: {
-    height: 100,
-    marginTop: 5,
-    padding: 20,
-    borderRadius: 5,
-  },
-
-  container: {
-    // padding: 5,
-    backgroundColor: '#5168B6',
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#5168B6',
-    height: 70,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  headerText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#5168B6',
-  },
-  gridContainer: {
-    backgroundColor: '#5168B6',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-  },
-
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#5168B6',
-    paddingHorizontal: 10,
-    marginBottom: 15,
-    height: 55,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchBar: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#000000',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 15,
-    backgroundColor: '#5168B6',
-  },
-  statBox: {
-    width: '48%',
-    backgroundColor: '#ffffff',
-    padding: 15,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    marginBottom: 10,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#5168B6',
-  },
-  statIncrease: {
-    fontSize: 14,
-    color: 'green',
-    fontWeight: 'bold',
-  },
-  statDecrease: {
-    fontSize: 14,
-    color: 'red',
-    fontWeight: 'bold',
-  },
-
-  statLabel: {
-    fontSize: 14,
-    color: '#555',
-  },
-  statTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 5,
-  },
-  quickActionBox: {
-    width: 45,
-    height: 45,
-
-    padding: 5,
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    marginBottom: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default Home;

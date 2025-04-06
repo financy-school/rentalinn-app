@@ -4,7 +4,7 @@ import {Formik} from 'formik';
 import {TextInput, Button, Text, Snackbar, useTheme} from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {CredentialsContext} from '../components/CredentialsContext';
+import {CredentialsContext} from '../context/CredentialsContext';
 import {handleSchoolUserSignup} from '../services/NetworkUtils';
 import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
 
@@ -21,12 +21,13 @@ const SignUp = ({navigation}) => {
     setVisible(false);
 
     try {
+      delete credentials.confirmPassword;
+      credentials.business_name = credentials.property_name;
       const response = await handleSchoolUserSignup(credentials);
       const {user, message} = response;
       const token = 'Bearer';
       persistLogin({...user, token}, message, 'success');
     } catch (error) {
-      console.error(error);
       setMessage('An error occurred. Please check your network and try again.');
       setVisible(true);
     } finally {
@@ -82,9 +83,9 @@ const SignUp = ({navigation}) => {
 
         <Formik
           initialValues={{
-            fullName: '',
-            phoneNumber: '',
-            pgName: '',
+            name: '',
+            phone_number: '',
+            property_name: '',
             address: '',
             email: '',
             password: '',
@@ -98,18 +99,18 @@ const SignUp = ({navigation}) => {
               <TextInput
                 label="Full Name"
                 mode="outlined"
-                value={values.fullName}
-                onChangeText={handleChange('fullName')}
-                onBlur={handleBlur('fullName')}
+                value={values.name}
+                onChangeText={handleChange('name')}
+                onBlur={handleBlur('name')}
                 left={<TextInput.Icon icon="account" color={colors.primary} />}
                 style={{marginTop: 15}}
               />
               <TextInput
                 label="Phone Number"
                 mode="outlined"
-                value={values.phoneNumber}
-                onChangeText={handleChange('phoneNumber')}
-                onBlur={handleBlur('phoneNumber')}
+                value={values.phone_number}
+                onChangeText={handleChange('phone_number')}
+                onBlur={handleBlur('phone_number')}
                 keyboardType="phone-pad"
                 left={<TextInput.Icon icon="phone" color={colors.primary} />}
                 style={{marginTop: 15}}
@@ -117,9 +118,9 @@ const SignUp = ({navigation}) => {
               <TextInput
                 label="PG Name"
                 mode="outlined"
-                value={values.pgName}
-                onChangeText={handleChange('pgName')}
-                onBlur={handleBlur('pgName')}
+                value={values.property_name}
+                onChangeText={handleChange('property_name')}
+                onBlur={handleBlur('property_name')}
                 left={<TextInput.Icon icon="home" color={colors.primary} />}
                 style={{marginTop: 15}}
               />
