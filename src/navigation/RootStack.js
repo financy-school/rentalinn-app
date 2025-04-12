@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {Colors} from '../components/styles';
 const {primary, tertiary} = Colors;
 import Login from '../screens/Login';
@@ -8,14 +7,15 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {CredentialsContext} from '../context/CredentialsContext';
 import SplashScreen from '../components/SplashScreen';
 import DrawerStack from './DrawerNavigation';
+import {useContext, useEffect, useState} from 'react';
 
 const Stack = createNativeStackNavigator();
 
 const RootStack = () => {
-  const [isLoading, setIsLoading] = React.useState(true);
-  const {credentials} = React.useContext(CredentialsContext);
+  const [isLoading, setIsLoading] = useState(true);
+  const {credentials} = useContext(CredentialsContext);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);

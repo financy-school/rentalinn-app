@@ -5,13 +5,13 @@ import StandardText from '../StandardText/StandardText';
 
 const iconsData = [
   {icon: 'contacts', label: 'Contacts'},
-  {icon: 'account-plus', label: 'Add User'},
+  {icon: 'account-plus', label: 'Add Tenant'},
   {icon: 'bullhorn', label: 'Announce'},
   {icon: 'credit-card', label: 'Payments'},
   {icon: 'home-plus', label: 'Add Room'},
 ];
 
-const CircularIconsWithText = () => {
+const CircularIconsWithText = ({onActionPress}) => {
   const theme = useTheme();
 
   return (
@@ -42,7 +42,7 @@ const CircularIconsWithText = () => {
               icon={item.icon}
               iconColor={theme.colors.onPrimaryContainer}
               size={20}
-              onPress={() => console.log(`${item.label} pressed`)}
+              onPress={() => onActionPress(item)}
             />
           </View>
 

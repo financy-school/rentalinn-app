@@ -8,6 +8,7 @@ import {useNavigation, DrawerActions} from '@react-navigation/native';
 import {Platform} from 'react-native';
 import Home from '../screens/Home';
 import Profile from '../screens/pages/Profile';
+import Rooms from '../screens/Rooms';
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -91,7 +92,7 @@ const BottomNavigation = () => {
 
       <Tab.Screen
         name="Rooms"
-        component={Home}
+        component={Rooms}
         options={{
           tabBarLabel: 'Rooms',
         }}
