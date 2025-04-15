@@ -17,7 +17,33 @@ const DrawerStack = () => {
       screenOptions={({navigation}) => ({
         headerShown: false,
         drawerPosition: 'left',
-        drawerType: 'slide',
+        drawerType: 'front',
+        drawerStyle: {
+          backgroundColor: '#fff',
+          width: '100%',
+        },
+        drawerActiveBackgroundColor: '#e0e0e0',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerLabelStyle: {
+          marginLeft: -25,
+          fontSize: 15,
+        },
+        drawerItemStyle: {
+          marginVertical: 5,
+        },
+        drawerItemLabelStyle: {
+          fontSize: 15,
+          fontWeight: 'bold',
+        },
+        drawerIcon: ({color}) => <Icon name="bars" size={20} color={color} />,
+        headerStyle: {
+          backgroundColor: '#f4511e',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
       })}>
       <Drawer.Screen name="BottomNavigation" component={BottomNavigation} />
       <Drawer.Screen name="Home" component={Home} />

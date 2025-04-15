@@ -28,4 +28,8 @@ const gap = StyleSheet.create({
     height: 30,
     width: 30,
   },
+  xxl: {
+    height: 32,
+    width: 32,
+  },
 });

@@ -9,6 +9,8 @@ import {Platform} from 'react-native';
 import Home from '../screens/Home';
 import Profile from '../screens/pages/Profile';
 import Rooms from '../screens/Rooms';
+import Tenants from '../screens/Tenant';
+import Tickets from '../screens/Tickets';
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -99,14 +101,14 @@ const BottomNavigation = () => {
       />
       <Tab.Screen
         name="Tenants"
-        component={Home}
+        component={Tenants}
         options={{
           tabBarLabel: 'Tenants',
         }}
       />
       <Tab.Screen
         name="Tickets"
-        component={Profile}
+        component={Tickets}
         options={{
           tabBarLabel: 'Tickets',
         }}

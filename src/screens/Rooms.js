@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import {Avatar, Button, Card, Text, useTheme} from 'react-native-paper';
+import {Avatar, Button, Card, FAB, Text, useTheme} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
 
@@ -16,6 +16,7 @@ import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
+import {Menu} from 'react-native-paper';
 
 const filterOptions = [
   {label: 'All', key: 'all', value: 30},
@@ -47,6 +48,9 @@ const Rooms = ({navigation}) => {
     if (selectedFilter === 'vacant') return bed.status === 'vacant';
     return bed.type === selectedFilter;
   });
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [anchorBedId, setAnchorBedId] = useState(null);
 
   return (
     <SafeAreaView
@@ -118,7 +122,7 @@ const Rooms = ({navigation}) => {
           {filteredBeds.map(bed => (
             <StandardCard key={bed.id} style={{marginTop: 10}}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('BedDetails', {bed})}>
+                onPress={() => navigation.navigate('RoomDetails', {bed})}>
                 {/* Header Row */}
                 <View
                   style={{
@@ -156,11 +160,55 @@ const Rooms = ({navigation}) => {
                       </Text>
                     </View>
 
-                    <MaterialCommunityIcons
-                      name="dots-vertical"
-                      size={20}
-                      color="#888"
-                    />
+                    <Menu
+                      visible={menuVisible && anchorBedId === bed.id}
+                      onDismiss={() => {
+                        setMenuVisible(false);
+                        setAnchorBedId(null);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={() => {
+                            setMenuVisible(true);
+                            setAnchorBedId(bed.id);
+                          }}
+                          style={{paddingHorizontal: 8, paddingVertical: 4}}>
+                          <MaterialCommunityIcons
+                            name="dots-vertical"
+                            size={20}
+                            color="#888"
+                          />
+                        </TouchableOpacity>
+                      }>
+                      <Menu.Item
+                        onPress={() => {
+                          setMenuVisible(false);
+                          setAnchorBedId(null);
+                        }}
+                        title="Edit"
+                      />
+                      <Menu.Item
+                        onPress={() => {
+                          setMenuVisible(false);
+                          setAnchorBedId(null);
+                        }}
+                        title="Share"
+                      />
+                      <Menu.Item
+                        onPress={() => {
+                          setMenuVisible(false);
+                          setAnchorBedId(null);
+                        }}
+                        title="Send Message"
+                      />
+                      <Menu.Item
+                        onPress={() => {
+                          setMenuVisible(false);
+                          setAnchorBedId(null);
+                        }}
+                        title="Delete"
+                      />
+                    </Menu>
                   </View>
                 </View>
 
@@ -266,6 +314,19 @@ const Rooms = ({navigation}) => {
             </StandardCard>
           ))}
         </ScrollView>
+
+        <FAB
+          icon="plus"
+          color="#fff"
+          style={{
+            position: 'absolute',
+            bottom: 120,
+            right: 30,
+            borderRadius: 30,
+            backgroundColor: theme.colors.primary,
+          }}
+          onPress={() => navigation.navigate('AddBed')}
+        />
       </View>
     </SafeAreaView>
   );

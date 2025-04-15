@@ -8,6 +8,9 @@ import {CredentialsContext} from '../context/CredentialsContext';
 import SplashScreen from '../components/SplashScreen';
 import DrawerStack from './DrawerNavigation';
 import {useContext, useEffect, useState} from 'react';
+import RentDetails from '../screens/RentDetails';
+import RoomDetails from '../screens/RoomDetails';
+import TenantDetails from '../screens/TenantDetails';
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +50,77 @@ const RootStack = () => {
               options={{headerTintColor: primary}}
               name="DrawerStack"
               component={DrawerStack}
+            />
+
+            <Stack.Screen
+              options={{
+                headerTintColor: primary,
+                headerShown: true,
+                headerTitle: 'Settings',
+                headerTitleAlign: 'center',
+                headerStyle: {
+                  backgroundColor: '#ffffff',
+                },
+                headerTitleStyle: {
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  color: primary,
+                },
+                headerLeftContainerStyle: {
+                  paddingLeft: 20,
+                },
+                headerRightContainerStyle: {
+                  paddingRight: 20,
+                },
+                headerShadowVisible: false,
+                headerBackTitleVisible: false,
+                headerBackButtonMenuEnabled: true,
+                headerBackTitle: 'Back',
+                headerBackButtonMenuVisible: true,
+                headerBackButtonVisible: true,
+                headerBackButtonPressColor: primary,
+                headerBackButtonPressOpacity: 0.8,
+                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleOpacity: 0.8,
+                headerBackButtonPressRippleRadius: 20,
+                headerBackButtonPressRippleColorAndroid: primary,
+              }}
+              name="Settings"
+              component={RentDetails}
+            />
+
+            <Stack.Screen
+              options={{
+                headerTintColor: primary,
+                headerShown: true,
+                headerBackButtonVisible: true,
+                headerBackButtonPressColor: primary,
+                headerBackButtonPressOpacity: 0.8,
+                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleOpacity: 0.8,
+                headerBackButtonPressRippleRadius: 20,
+                headerBackButtonPressRippleColorAndroid: primary,
+              }}
+              name="RoomDetails"
+              component={RoomDetails}
+            />
+
+            <Stack.Screen
+              options={{
+                headerShown: true,
+                headerTitle: 'Profile',
+                headerTintColor: primary,
+                headerTitleAlign: 'center',
+                headerBackButtonVisible: true,
+                headerBackButtonPressColor: primary,
+                headerBackButtonPressOpacity: 0.8,
+                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleOpacity: 0.8,
+                headerBackButtonPressRippleRadius: 20,
+                headerBackButtonPressRippleColorAndroid: primary,
+              }}
+              name="TenantDetails"
+              component={TenantDetails}
             />
           </>
         ) : (

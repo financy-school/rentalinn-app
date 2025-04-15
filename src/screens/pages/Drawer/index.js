@@ -1,27 +1,22 @@
 import React, {useContext, useState} from 'react';
-import {
-  View,
-  Pressable,
-  Image,
-  Dimensions,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import {View, Text, Image, ScrollView, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-
-import {academicMenu, accountMenu, actionMenu, exploreMenu} from './constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {SvgUri} from 'react-native-svg';
 import {CredentialsContext} from '../../../context/CredentialsContext';
+import StandardText from '../../../components/StandardText/StandardText';
+import {menuItems} from './constant';
 
-function DrawerContent(props) {
+const DrawerContent = () => {
+  const navigation = useNavigation();
   const {credentials, setCredentials} = useContext(CredentialsContext);
   const {owner_name, email, phone_number} = credentials;
-  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    setCredentials(null);
+    await AsyncStorage.clear();
+  };
 
   const [expandedMenus, setExpandedMenus] = useState({});
 
@@ -32,110 +27,66 @@ function DrawerContent(props) {
     }));
   };
 
-  const handleLogout = async () => {
-    setCredentials(null);
-    await AsyncStorage.clear();
-  };
-
-  const LogoutCard = () => (
-    <Pressable
-      style={{flexDirection: 'row', alignItems: 'center', padding: 12}}
-      onPress={handleLogout}>
-      {/* <SvgUri
-        uri={'https://cdn-icons-png.flaticon.com/512/1828/1828427.png'}
-        style={{marginRight: 10}}
-      /> */}
-
-      <Image
-        source={{
-          uri: 'https://cdn-icons-png.flaticon.com/512/1828/1828427.png',
-        }}
-        style={{
-          width: 25,
-          height: 25,
-          marginRight: 10,
-        }}
-      />
-      <Text style={{fontSize: 16, fontWeight: '600', color: '#333'}}>
-        Logout
-      </Text>
-    </Pressable>
-  );
-
-  const ExpandableItem = ({item}) => {
-    const hasChildren = item.children && item.children.length > 0;
+  const renderMenuItem = (item, index) => {
     const isExpanded = expandedMenus[item.label];
+    const hasChildren = item.children?.length;
 
     return (
-      <View>
+      <View key={index} style={{marginVertical: 4}}>
         <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#FAFAFA',
-            borderRadius: 8,
-            padding: 12,
-            marginVertical: 4,
-            elevation: 3,
-            shadowColor: 'black',
-            shadowOffset: {width: 0, height: 2},
-            shadowOpacity: 0.1,
-            shadowRadius: 5,
-          }}
           onPress={() =>
             hasChildren
               ? toggleExpand(item.label)
               : navigation.navigate(item.route)
-          }>
+          }
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 12,
+            borderRadius: 10,
+            backgroundColor: '#f8f8f8',
+          }}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            {/* <SvgUri uri={item.icon} style={{marginRight: 12}} /> */}
-            <Image
-              source={{
-                uri: item.icon,
-              }}
-              style={{
-                width: 25,
-                height: 25,
-                marginRight: 12,
-                borderColor: 'black',
-              }}
-              onError={e => console.log('Image Load Error:', e.nativeEvent)}
+            <Icon
+              name={item.icon}
+              size={20}
+              color="#333"
+              style={{marginRight: 12}}
             />
-            <Text style={{fontSize: 16, fontWeight: '500', color: '#333'}}>
+            <StandardText style={{fontSize: 15, fontWeight: '500'}}>
               {item.label}
-            </Text>
+            </StandardText>
           </View>
           {hasChildren && (
             <Icon
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color="#333"
+              size={16}
+              color="#888"
             />
           )}
         </TouchableOpacity>
 
         {hasChildren && isExpanded && (
-          <View style={{paddingLeft: 32, marginTop: 4}}>
-            {item.children.map((subItem, index) => (
+          <View style={{paddingLeft: 36, paddingTop: 4}}>
+            {item.children.map((subItem, subIndex) => (
               <TouchableOpacity
-                key={index}
+                key={subIndex}
+                onPress={() => navigation.navigate(subItem.route)}
                 style={{
+                  paddingVertical: 6,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate(subItem.route)}>
-                {/* <SvgUri uri={subItem.icon} style={{marginRight: 12}} /> */}
-                <Image
-                  source={{
-                    uri: subItem.icon,
-                  }}
-                  style={{width: 15, height: 15, marginRight: 12}}
+                }}>
+                <Icon
+                  name="ellipse-outline"
+                  size={8}
+                  color="#666"
+                  style={{marginRight: 10}}
                 />
-                <Text style={{fontSize: 14, color: '#555'}}>
+                <StandardText style={{fontSize: 14, color: '#666'}}>
                   {subItem.label}
-                </Text>
+                </StandardText>
               </TouchableOpacity>
             ))}
           </View>
@@ -145,52 +96,54 @@ function DrawerContent(props) {
   };
 
   return (
-    <ScrollView style={{backgroundColor: '#fff', flex: 1}}>
-      <View
-        style={{
-          minHeight: Dimensions.get('screen').height - 100,
-          justifyContent: 'space-between',
-        }}>
-        <SafeAreaView
-          style={{
-            backgroundColor: '#fff',
-            padding: 16,
-            justifyContent: 'center',
-          }}>
-          <Image
-            style={{width: 240, height: 52}}
-            source={require('../../../assets/edumynd.png')}
-            resizeMode="contain"
-          />
-          <View style={{marginTop: 12}}>
-            <Text style={{fontSize: 22, fontWeight: '600', color: '#000'}}>
-              {owner_name}
-            </Text>
-            {email && (
-              <Text style={{fontSize: 14, color: '#666', marginTop: 4}}>
-                {email.replace(/\%2B/g, '+')}
-              </Text>
-            )}
-            {phone_number && (
-              <Text style={{fontSize: 14, color: '#666'}}>
-                +91 {phone_number}
-              </Text>
-            )}
-          </View>
-        </SafeAreaView>
-
-        <View style={{padding: 16}}>
-          {[...accountMenu, ...exploreMenu, ...actionMenu].map(
-            (item, index) => (
-              <ExpandableItem item={item} key={index} />
-            ),
-          )}
-
-          <LogoutCard />
+    <ScrollView style={{flex: 1, backgroundColor: '#fff'}}>
+      <SafeAreaView style={{padding: 16, marginTop: 26}}>
+        <Image
+          style={{width: 220, height: 52, alignSelf: 'center'}}
+          source={require('../../../assets/edumynd.png')}
+          resizeMode="contain"
+        />
+        <View style={{marginTop: 16, alignItems: 'center'}}>
+          <StandardText style={{fontSize: 18, fontWeight: 'bold'}}>
+            Sumit Gupta
+          </StandardText>
+          <StandardText style={{fontSize: 14, color: '#666'}}>
+            {'sumitgupta@gmail.com'}, +91 {'9628283375'}
+          </StandardText>
         </View>
+
+        <View
+          style={{
+            backgroundColor: '#e5f9ed',
+            padding: 12,
+            borderRadius: 12,
+            marginTop: 16,
+          }}>
+          <Text style={{color: '#2f855a', fontWeight: '600'}}>
+            10 Rooms Active • 2 Requests
+          </Text>
+        </View>
+      </SafeAreaView>
+
+      <View style={{padding: 16}}>
+        {menuItems.map((item, index) => renderMenuItem(item, index))}
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{
+            marginTop: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 12,
+          }}>
+          <Icon name="log-out-outline" size={20} color="#e53e3e" />
+          <StandardText
+            style={{marginLeft: 12, fontSize: 16, color: '#e53e3e'}}>
+            Logout
+          </StandardText>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
-}
+};
 
 export default DrawerContent;

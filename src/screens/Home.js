@@ -225,6 +225,23 @@ const Home = ({navigation}) => {
                     </StandardText>
                   </Button>
                 </View>
+                <View>
+                  <Button
+                    mode="contained"
+                    buttonColor={theme.colors.black}
+                    style={{
+                      width: '45%',
+                      alignSelf: 'center',
+                      marginTop: 10,
+                      marginBottom: 10,
+                      borderRadius: 5,
+                    }}
+                    onPress={() => {
+                      navigation.navigate('Settings');
+                    }}>
+                    <StandardText color="default_white">VIEW</StandardText>
+                  </Button>
+                </View>
               </View>
             </StandardCard>
 
@@ -314,29 +331,33 @@ const Home = ({navigation}) => {
                   }}>
                   <Button
                     mode="contained"
-                    buttonColor={theme.colors.black}
+                    buttonColor={theme.colors.white}
                     style={{
                       width: '45%',
                       alignSelf: 'center',
                       marginTop: 10,
                       marginBottom: 10,
                       borderRadius: 5,
+                      borderColor: theme.colors.black,
+                      borderWidth: 1,
                     }}
                     onPress={() => {}}>
-                    VIEW
+                    <StandardText>VIEW</StandardText>
                   </Button>
                   <Button
                     mode="contained"
-                    buttonColor={theme.colors.black}
+                    buttonColor={theme.colors.white}
                     style={{
                       width: '45%',
                       alignSelf: 'center',
                       marginTop: 10,
                       marginBottom: 10,
                       borderRadius: 5,
+                      borderColor: theme.colors.black,
+                      borderWidth: 1,
                     }}
                     onPress={() => {}}>
-                    VIEW
+                    <StandardText>VIEW</StandardText>
                   </Button>
                 </View>
               </View>
