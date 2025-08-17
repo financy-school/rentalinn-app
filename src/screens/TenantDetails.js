@@ -25,6 +25,7 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import StandardInformationAccordion from '../components/StandardInformationAccordion/StandardInformationAccordion';
+import colors from '../theme/color';
 const screenWidth = Dimensions.get('window').width;
 const TenantDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -38,7 +39,7 @@ const TenantDetails = ({navigation, route}) => {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
       }}>
       <Gap size="xxl" />
 
@@ -46,7 +47,7 @@ const TenantDetails = ({navigation, route}) => {
         style={{
           height: 200,
           width: '100%',
-          backgroundColor: theme.colors.primary,
+          backgroundColor: colors.primary,
         }}></View>
       <View style={{paddingHorizontal: 15, marginTop: -140}}>
         <StandardCard key={1} style={{marginTop: 40}}>
@@ -400,7 +401,7 @@ const TenantDetails = ({navigation, route}) => {
           }}>
           <Button
             mode="outlined"
-            textColor={theme.colors.black}
+            textColor={colors.black}
             style={{width: '45%', borderRadius: 5}}
             onPress={() => {}}>
             <StandardText fontWeight="bold">Edit</StandardText>

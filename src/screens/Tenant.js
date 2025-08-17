@@ -17,6 +17,7 @@ import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
 import {fetchTenants} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
+import colors from '../theme/color';
 
 const filterOptions = [
   {label: 'All', key: 'all', value: 30},
@@ -69,10 +70,10 @@ const Tenants = ({navigation}) => {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
         marginTop: 25,
       }}>
-      <View style={{flex: 1, backgroundColor: theme.colors.background}}>
+      <View style={{flex: 1, backgroundColor: colors.background}}>
         <ScrollView contentContainerStyle={{padding: 16}}>
           <PaperInput
             mode="flat"
@@ -106,7 +107,7 @@ const Tenants = ({navigation}) => {
                 style={[
                   styles.filterBox,
                   selectedFilter === option.key && {
-                    backgroundColor: theme.colors.primary,
+                    backgroundColor: colors.primary,
                   },
                 ]}>
                 <View style={styles.textWrapper}>
@@ -299,7 +300,7 @@ const Tenants = ({navigation}) => {
             bottom: 120,
             right: 30,
             borderRadius: 30,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: colors.primary,
           }}
           onPress={() => navigation.navigate('AddTenant')}
         />

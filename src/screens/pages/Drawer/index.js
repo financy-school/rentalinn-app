@@ -54,7 +54,7 @@ const DrawerContent = () => {
               color="#333"
               style={{marginRight: 12}}
             />
-            <StandardText style={{fontSize: 15, fontWeight: '500'}}>
+            <StandardText fontWeight="semibold" style={{fontSize: 15}}>
               {item.label}
             </StandardText>
           </View>
@@ -104,11 +104,11 @@ const DrawerContent = () => {
           resizeMode="contain"
         />
         <View style={{marginTop: 16, alignItems: 'center'}}>
-          <StandardText style={{fontSize: 18, fontWeight: 'bold'}}>
+          <StandardText fontWeight="bold" style={{fontSize: 18}}>
             Sumit Gupta
           </StandardText>
           <StandardText style={{fontSize: 14, color: '#666'}}>
-            {'sumitgupta@gmail.com'}, +91 {'9628283375'}
+            {email}, +91 {phone_number}
           </StandardText>
         </View>
 
@@ -119,9 +119,9 @@ const DrawerContent = () => {
             borderRadius: 12,
             marginTop: 16,
           }}>
-          <Text style={{color: '#2f855a', fontWeight: '600'}}>
+          <StandardText fontWeight="bold" style={{color: '#2f855a'}}>
             10 Rooms Active • 2 Requests
-          </Text>
+          </StandardText>
         </View>
       </SafeAreaView>
 
@@ -137,6 +137,7 @@ const DrawerContent = () => {
           }}>
           <Icon name="log-out-outline" size={20} color="#e53e3e" />
           <StandardText
+            fontWeight="regular"
             style={{marginLeft: 12, fontSize: 16, color: '#e53e3e'}}>
             Logout
           </StandardText>

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View, LayoutAnimation} from 'react-native';
 import {Card, Text, IconButton, useTheme} from 'react-native-paper';
+import colors from '../../theme/color';
 // import {LineChart} from 'recharts-native';
 
 const data = [
@@ -68,7 +69,7 @@ const RevenueAccordionCard = () => {
           onPress={toggleExpand}
           iconColor={'#000'}
           style={{
-            backgroundColor: theme.colors.light_gray,
+            backgroundColor: colors.light_gray,
             padding: 0,
             position: 'absolute',
             right: 3,
@@ -83,7 +84,7 @@ const RevenueAccordionCard = () => {
       {/* Expanded Section */}
       {expanded && (
         <View style={{padding: 15}}>
-          <Text style={{color: theme.colors.textSecondary, marginBottom: 10}}>
+          <Text style={{color: colors.textSecondary, marginBottom: 10}}>
             Revenue Trends
           </Text>
           {/* <LineChart
@@ -94,9 +95,9 @@ const RevenueAccordionCard = () => {
             <LineChart.Line
               type="monotone"
               dataKey="revenue"
-              stroke={theme.colors.primary}
+              stroke={colors.primary}
             />
-            <LineChart.CartesianGrid stroke={theme.colors.backgroundLight} />
+            <LineChart.CartesianGrid stroke={colors.backgroundLight} />
             <LineChart.XAxis dataKey="month" />
             <LineChart.YAxis />
             <LineChart.Tooltip />

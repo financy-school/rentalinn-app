@@ -1,11 +1,12 @@
 import React, {useContext} from 'react';
 import {View, Image, StyleSheet, Dimensions} from 'react-native';
 import {ThemeContext} from '../context/ThemeContext';
+import colors from '../theme/color';
 
 const {width} = Dimensions.get('window');
 
 const SplashScreen = () => {
-  const {theme: mode, colors} = useContext(ThemeContext);
+  const {theme: mode} = useContext(ThemeContext);
 
   return (
     <View

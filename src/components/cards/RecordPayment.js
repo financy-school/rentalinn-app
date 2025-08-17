@@ -13,6 +13,7 @@ import DateTimePicker, {useDefaultStyles} from 'react-native-ui-datepicker';
 import {ThemeContext} from '../../context/ThemeContext';
 import Gap from '../Gap/Gap';
 import dayjs from 'dayjs';
+import colors from '../../theme/color';
 
 const RecordPayment = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -78,7 +79,7 @@ const RecordPayment = ({handleClosePress}) => {
     },
     selectedDateContainer: {
       ...defaultStyles.selectedDateContainer,
-      backgroundColor: mode === 'dark' ? '#333333' : theme.colors.primary,
+      backgroundColor: mode === 'dark' ? '#333333' : colors.primary,
     },
     selectedDateText: {
       ...defaultStyles.selectedDateText,
@@ -102,7 +103,7 @@ const RecordPayment = ({handleClosePress}) => {
             setCalendarVisible(false);
           }}
           style={styles.closeButton}
-          iconColor={theme.colors.black}
+          iconColor={colors.black}
         />
         <StandardText
           textAlign="center"
@@ -212,7 +213,7 @@ const RecordPayment = ({handleClosePress}) => {
                   }}>
                   <Button
                     mode="outlined"
-                    textColor={theme.colors.black}
+                    textColor={colors.black}
                     style={{width: '45%', borderRadius: 5}}
                     onPress={() => {
                       setCalendarVisible(false);

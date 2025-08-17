@@ -6,9 +6,8 @@ import React, {
   useState,
 } from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
-import {Appbar, Avatar, Button, Card, Text} from 'react-native-paper';
+import {Appbar, Avatar, Button} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import CircularIconsWithText from '../components/cards/CircularIcon';
 import {ThemeContext} from '../context/ThemeContext';
 import StandardAccordion from '../components/StandardAccordion/StandardAccordion';

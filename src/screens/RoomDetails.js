@@ -24,6 +24,7 @@ import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
+import colors from '../theme/color';
 
 const RoomDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -55,7 +56,7 @@ const RoomDetails = ({navigation, route}) => {
   const roomArea = room?.area || 'N/A';
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
       {/* Image Carousel */}
       <View style={{height: 250, marginBottom: 12}}>
         <Animated.ScrollView
@@ -150,7 +151,7 @@ const RoomDetails = ({navigation, route}) => {
           <MaterialCommunityIcons
             name="door"
             size={40}
-            color={theme.colors.primary}
+            color={colors.primary}
           />
           <StandardText style={{marginLeft: 6}} fontWeight="bold" size="xl">
             Room {room.name}

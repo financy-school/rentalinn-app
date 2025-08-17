@@ -15,6 +15,7 @@ import {CredentialsContext} from '../context/CredentialsContext';
 import {createRoom} from '../services/NetworkUtils';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
+import colors from '../theme/color';
 
 const AddRoomSchema = Yup.object().shape({
   name: Yup.string().required('Room name is required'),
@@ -280,7 +281,7 @@ const AddRoom = ({navigation}) => {
                     onPress={() =>
                       setFieldValue('isFurnished', !values.isFurnished)
                     }
-                    color={theme.colors.primary}
+                    color={colors.primary}
                   />
                   <Text style={styles.checkboxLabel}>Furnished Room</Text>
                 </View>
@@ -291,7 +292,7 @@ const AddRoom = ({navigation}) => {
                     onPress={() =>
                       setFieldValue('isAvailable', !values.isAvailable)
                     }
-                    color={theme.colors.primary}
+                    color={colors.primary}
                   />
                   <Text style={styles.checkboxLabel}>Available for Rent</Text>
                 </View>

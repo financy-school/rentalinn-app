@@ -14,6 +14,7 @@ import {ThemeContext} from '../../context/ThemeContext';
 import Gap from '../Gap/Gap';
 
 import * as ImagePicker from 'react-native-image-picker';
+import colors from '../../theme/color';
 
 const AddRoom = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -93,7 +94,7 @@ const AddRoom = ({handleClosePress}) => {
             setRoomImage(null);
           }}
           style={styles.closeButton}
-          iconColor={theme.colors.black}
+          iconColor={colors.black}
         />
         <StandardText
           textAlign="center"

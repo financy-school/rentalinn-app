@@ -17,6 +17,7 @@ import StandardCard from '../StandardCard/StandardCard';
 import {ThemeContext} from '../../context/ThemeContext';
 import ContactsLib from 'react-native-contacts';
 import {Linking, Alert} from 'react-native';
+import {colors} from 'react-native-elements';
 
 const Contacts = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -98,7 +99,7 @@ const Contacts = ({handleClosePress}) => {
       position: 'absolute',
       right: 20,
       bottom: 100,
-      backgroundColor: theme.colors.primary,
+      backgroundColor: colors.primary,
     },
   });
 
@@ -111,7 +112,7 @@ const Contacts = ({handleClosePress}) => {
             size={24}
             onPress={handleClosePress}
             style={styles.closeButton}
-            iconColor={theme.colors.black}
+            iconColor={colors.black}
           />
 
           <StandardText

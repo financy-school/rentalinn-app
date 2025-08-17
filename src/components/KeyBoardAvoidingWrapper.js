@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import colors from '../theme/color';
 
 const KeyBoardAvoidingWrapper = ({children}) => {
   const dismissKeyboard = () => {
@@ -12,8 +13,8 @@ const KeyBoardAvoidingWrapper = ({children}) => {
   };
 
   return (
-    <KeyboardAvoidingView style={{flex: 1}}>
-      <ScrollView>
+    <KeyboardAvoidingView style={{flex: 1, backgroundColor: colors.background}}>
+      <ScrollView keyboardShouldPersistTaps="handled">
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
           {children}
         </TouchableWithoutFeedback>

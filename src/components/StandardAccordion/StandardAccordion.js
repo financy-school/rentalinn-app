@@ -25,8 +25,8 @@ import Animated, {
 import StandardText from '../StandardText/StandardText';
 import Gap from '../Gap/Gap';
 import StandardSvg from '../StandardSvg/StandardSvg';
-import {fadedColorOpacity, hexToRgba} from '../../theme/color';
-import {getIconForType} from '../../theme/iconsUtil';
+import colors, {fadedColorOpacity, hexToRgba} from '../../theme/color';
+
 import {Button, IconButton, useTheme} from 'react-native-paper';
 import {Modal} from 'react-native';
 import {analyticsDashBoard} from '../../services/NetworkUtils';
@@ -122,7 +122,7 @@ const StandardAccordion = ({heading, icon, content}) => {
     },
     selectedDateContainer: {
       ...defaultStyles.selectedDateContainer,
-      backgroundColor: mode === 'dark' ? '#333333' : theme.colors.primary,
+      backgroundColor: mode === 'dark' ? '#333333' : colors.primary,
     },
     selectedDateText: {
       ...defaultStyles.selectedDateText,
@@ -186,7 +186,7 @@ const StandardAccordion = ({heading, icon, content}) => {
           position: 'absolute',
           top: 10,
           right: 10,
-          backgroundColor: theme.colors.background,
+          backgroundColor: colors.background,
           borderTopLeftRadius: 10,
           borderBottomLeftRadius: 10,
           paddingHorizontal: 8,
@@ -236,8 +236,8 @@ const StandardAccordion = ({heading, icon, content}) => {
               style={{flexDirection: 'row', justifyContent: 'space-between'}}>
               <Button
                 mode="outlined"
-                buttonColor={theme.colors.white}
-                textColor={theme.colors.black}
+                buttonColor={colors.white}
+                textColor={colors.black}
                 style={{
                   width: '45%',
                   alignSelf: 'center',
@@ -256,7 +256,7 @@ const StandardAccordion = ({heading, icon, content}) => {
               </Button>
               <Button
                 mode="contained"
-                buttonColor={theme.colors.black}
+                buttonColor={colors.black}
                 style={{
                   width: '45%',
                   alignSelf: 'center',
@@ -312,7 +312,7 @@ const StandardAccordion = ({heading, icon, content}) => {
               underlayColor={hexToRgba('#ff385c', fadedColorOpacity)}
               onPress={toggleAccordion}
               style={[styles.dropDownIcon, rotateStyle]}>
-              <StandardSvg icon={getIconForType('Dropdown')} size={'sm'} />
+              <StandardSvg icon={'arrow-down-drop-circle'} size={'sm'} />
             </AnimatedBtn>
           </View>
         </View>

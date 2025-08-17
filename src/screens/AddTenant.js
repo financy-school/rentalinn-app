@@ -16,6 +16,7 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import {addTenant} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
+import colors from '../theme/color';
 
 const AddTenant = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -53,7 +54,7 @@ const AddTenant = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

@@ -15,9 +15,9 @@ const StandardSvg = ({icon, size = 'md', uri, iconColor}) => {
   const dimension = getFontSize(size);
 
   // If a URI is provided, render a remote SVG
-  if (uri) {
-    return <SvgUri uri={uri} height={dimension} width={dimension} />;
-  }
+  // if (uri) {
+  //   return <SvgUri uri={uri} height={dimension} width={dimension} />;
+  // }
 
   // Otherwise render an IconButton
   return (

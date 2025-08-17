@@ -5,7 +5,7 @@ import StandardText from '../StandardText/StandardText';
 import Gap from '../Gap/Gap';
 import StandardSvg from '../StandardSvg/StandardSvg';
 import {fadedColorOpacity, hexToRgba, getColor} from '../../theme/color';
-import {getIconForType} from '../../theme/iconsUtil';
+
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, {
   useAnimatedStyle,
@@ -82,7 +82,7 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
             onPress={toggleAccordion}
             style={[styles.dropDownIcon, rotateStyle]}>
             <StandardSvg
-              icon={getIconForType('Dropdown')}
+              icon={'arrow-down-drop-circle'}
               size="sm"
               color={colors.primary}
             />

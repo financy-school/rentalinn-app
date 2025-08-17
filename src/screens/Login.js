@@ -8,11 +8,13 @@ import {
   Card,
   useTheme,
 } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {CredentialsContext} from '../context/CredentialsContext';
 import {ThemeContext} from '../context/ThemeContext'; // ⬅️ make sure this exists
 import {handleUserLogin} from '../services/NetworkUtils';
 import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
+import colors from '../theme/color';
+import {Image} from 'react-native';
+import StandardText from '../components/StandardText/StandardText';
 
 const Login = ({navigation}) => {
   const [hidePassword, setHidePassword] = useState(true);
@@ -30,18 +32,16 @@ const Login = ({navigation}) => {
 
   // pick adaptive colors
   const backgroundColor = isDark
-    ? theme.colors.backgroundDark
-    : theme.colors.backgroundLight;
+    ? colors.backgroundDark
+    : colors.backgroundLight;
 
-  const cardBackground = isDark ? theme.colors.light_black : theme.colors.white;
+  const cardBackground = isDark ? colors.light_black : colors.white;
 
-  const textPrimary = isDark ? theme.colors.white : theme.colors.textPrimary;
-  const textSecondary = isDark
-    ? theme.colors.light_gray
-    : theme.colors.textSecondary;
+  const textPrimary = isDark ? colors.white : colors.textPrimary;
+  const textSecondary = isDark ? colors.light_gray : colors.textSecondary;
 
-  const onPrimary = theme.colors.white; // text/icon on top of primary
-  const primary = theme.colors.primary;
+  const onPrimary = colors.white; // text/icon on top of primary
+  const primary = colors.primary;
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -79,27 +79,28 @@ const Login = ({navigation}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <MaterialCommunityIcons
-            name="home-city-outline"
-            size={80}
-            color={onPrimary}
-          />
-          <Text
-            variant="headlineLarge"
+          <Image
+            source={require('../assets/splash.png')}
             style={{
-              color: onPrimary,
-              fontWeight: 'bold',
-              marginTop: 15,
-            }}>
-            Sign in to your Account
-          </Text>
-          <Text variant="bodyMedium" style={{color: onPrimary, marginTop: 10}}>
+              width: 100,
+              height: 100,
+              borderRadius: 55,
+            }}
+            resizeMode="contain"
+          />
+          <StandardText
+            fontWeight={'bold'}
+            style={{fontSize: 25, marginTop: 15}}
+            color="default_white">
+            Sign In
+          </StandardText>
+          <StandardText style={{color: onPrimary, marginTop: 2}}>
             Enter your email and password to log in
-          </Text>
+          </StandardText>
         </View>
 
         {/* Login Form Section */}
-        <View style={{paddingHorizontal: 20, marginTop: -50}}>
+        <View style={{paddingHorizontal: 10, marginTop: -50, marginBottom: 20}}>
           <Card style={{padding: 20, backgroundColor: cardBackground}}>
             <TextInput
               label="Email"
@@ -115,7 +116,15 @@ const Login = ({navigation}) => {
                   primary: primary,
                   background: cardBackground,
                 },
+                fonts: {
+                  regular: 'Metropolis-Regular',
+                  medium: 'Metropolis-Medium',
+                  bold: 'Metropolis-Bold',
+                  semibold: 'Metropolis-SemiBold',
+                  thin: 'Metropolis-Thin',
+                },
               }}
+              style={{fontFamily: 'Metropolis-Medium'}}
             />
 
             <TextInput
@@ -131,7 +140,6 @@ const Login = ({navigation}) => {
                   onPress={() => setHidePassword(!hidePassword)}
                 />
               }
-              style={{marginTop: 15}}
               theme={{
                 colors: {
                   text: textPrimary,
@@ -139,7 +147,15 @@ const Login = ({navigation}) => {
                   primary: primary,
                   background: cardBackground,
                 },
+                fonts: {
+                  regular: 'Metropolis-Regular',
+                  medium: 'Metropolis-Medium',
+                  bold: 'Metropolis-Bold',
+                  semibold: 'Metropolis-SemiBold',
+                  thin: 'Metropolis-Thin',
+                },
               }}
+              style={{marginTop: 15, fontFamily: 'Metropolis-Medium'}}
             />
 
             <Button
@@ -148,12 +164,13 @@ const Login = ({navigation}) => {
               loading={loading}
               style={{marginTop: 20}}
               buttonColor={primary}
+              labelStyle={{fontFamily: 'Metropolis-Bold', fontSize: 16}}
               textColor={onPrimary}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
             <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-              <Text
+              <StandardText
                 style={{
                   color: primary,
                   marginTop: 20,
@@ -161,7 +178,7 @@ const Login = ({navigation}) => {
                   textDecorationLine: 'underline',
                 }}>
                 Don't have an account? Sign Up
-              </Text>
+              </StandardText>
             </TouchableOpacity>
           </Card>
         </View>
@@ -172,7 +189,7 @@ const Login = ({navigation}) => {
           onDismiss={() => setErrorMessage('')}
           action={{label: 'Dismiss', onPress: () => setErrorMessage('')}}
           style={{
-            backgroundColor: isDark ? theme.colors.error : theme.colors.error,
+            backgroundColor: isDark ? colors.error : colors.error,
           }}>
           {errorMessage}
         </Snackbar>

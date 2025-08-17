@@ -2,6 +2,7 @@ import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {Text, IconButton, useTheme} from 'react-native-paper';
 import StandardText from '../StandardText/StandardText';
+import colors from '../../theme/color';
 
 const iconsData = [
   {icon: 'contacts', label: 'Contacts'},
@@ -27,12 +28,12 @@ const CircularIconsWithText = ({onActionPress}) => {
               width: 60,
               height: 60,
               borderRadius: 35,
-              backgroundColor: theme.colors.white,
+              backgroundColor: colors.white,
               justifyContent: 'center',
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: theme.colors.light_black,
-              shadowColor: theme.colors.light_black,
+              borderColor: colors.light_black,
+              shadowColor: colors.light_black,
               shadowOffset: {width: 0, height: 2},
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
@@ -40,7 +41,7 @@ const CircularIconsWithText = ({onActionPress}) => {
             }}>
             <IconButton
               icon={item.icon}
-              iconColor={theme.colors.onPrimaryContainer}
+              iconColor={colors.onPrimaryContainer}
               size={20}
               onPress={() => onActionPress(item)}
             />

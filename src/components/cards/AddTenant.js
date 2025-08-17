@@ -21,6 +21,7 @@ import DateTimePicker, {useDefaultStyles} from 'react-native-ui-datepicker';
 import {ThemeContext} from '../../context/ThemeContext';
 import Gap from '../Gap/Gap';
 import dayjs from 'dayjs';
+import colors from '../../theme/color';
 
 const AddTenant = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -82,7 +83,7 @@ const AddTenant = ({handleClosePress}) => {
     },
     selectedDateContainer: {
       ...defaultStyles.selectedDateContainer,
-      backgroundColor: mode === 'dark' ? '#333333' : theme.colors.primary,
+      backgroundColor: mode === 'dark' ? '#333333' : colors.primary,
     },
     selectedDateText: {
       ...defaultStyles.selectedDateText,
@@ -110,7 +111,7 @@ const AddTenant = ({handleClosePress}) => {
             setCalendarVisible(false);
           }}
           style={styles.closeButton}
-          iconColor={theme.colors.black}
+          iconColor={colors.black}
         />
         <StandardText
           textAlign="center"
@@ -193,13 +194,13 @@ const AddTenant = ({handleClosePress}) => {
             <Checkbox
               status={rentPaid === true ? 'checked' : 'unchecked'}
               onPress={() => setRentPaid(true)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Paid</Text>
             <Checkbox
               status={rentPaid === false ? 'checked' : 'unchecked'}
               onPress={() => setRentPaid(false)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Unpaid</Text>
           </View>
@@ -227,13 +228,13 @@ const AddTenant = ({handleClosePress}) => {
             <Checkbox
               status={depositPaid === true ? 'checked' : 'unchecked'}
               onPress={() => setDepositPaid(true)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Paid</Text>
             <Checkbox
               status={depositPaid === false ? 'checked' : 'unchecked'}
               onPress={() => setDepositPaid(false)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Unpaid</Text>
           </View>
@@ -250,7 +251,7 @@ const AddTenant = ({handleClosePress}) => {
             <Switch
               value={automaticRentReminder}
               onValueChange={setAutomaticRentReminder}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
           </View>
 
@@ -279,7 +280,7 @@ const AddTenant = ({handleClosePress}) => {
                   }}>
                   <Button
                     mode="outlined"
-                    textColor={theme.colors.black}
+                    textColor={colors.black}
                     style={{width: '45%', borderRadius: 5}}
                     onPress={() => {
                       setCalendarVisible(false);

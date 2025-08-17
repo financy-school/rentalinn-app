@@ -15,6 +15,7 @@ import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
+import colors from '../theme/color';
 
 const RentDetails = ({navigation}) => {
   const {theme: mode, toggleTheme} = useContext(ThemeContext);
@@ -55,13 +56,13 @@ const RentDetails = ({navigation}) => {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
         padding: 15,
       }}>
       <View
         style={{
           flex: 1,
-          backgroundColor: theme.colors.background,
+          backgroundColor: colors.background,
           padding: 15,
         }}>
         <ScrollView>
@@ -74,11 +75,11 @@ const RentDetails = ({navigation}) => {
             }}>
             <View
               style={{
-                backgroundColor: theme.colors.white,
+                backgroundColor: colors.white,
                 padding: 15,
                 borderRadius: 10,
                 marginTop: 10,
-                shadowColor: theme.colors.primary,
+                shadowColor: colors.primary,
                 shadowOffset: {width: 0, height: 2},
                 shadowOpacity: 0.25,
                 shadowRadius: 3.84,
@@ -134,7 +135,7 @@ const RentDetails = ({navigation}) => {
               <View>
                 <Button
                   mode="contained"
-                  buttonColor={theme.colors.black}
+                  buttonColor={colors.black}
                   style={{
                     width: '45%',
                     alignSelf: 'center',
@@ -157,9 +158,9 @@ const RentDetails = ({navigation}) => {
             <StandardCard style={{flex: 1, elevation: 2}}>
               <View
                 style={{
-                  backgroundColor: theme.colors.white,
+                  backgroundColor: colors.white,
                   borderRadius: 10,
-                  shadowColor: theme.colors.primary,
+                  shadowColor: colors.primary,
                   shadowOffset: {width: 0, height: 2},
                   shadowOpacity: 0.25,
                   shadowRadius: 3.84,
@@ -182,12 +183,12 @@ const RentDetails = ({navigation}) => {
 
                 <Button
                   mode="contained"
-                  buttonColor={theme.colors.white}
+                  buttonColor={colors.white}
                   contentStyle={{paddingVertical: 4}}
                   labelStyle={{fontSize: 14, fontWeight: 'bold'}}
                   style={{
                     borderRadius: 5,
-                    borderColor: theme.colors.black,
+                    borderColor: colors.black,
                     borderWidth: 1,
                   }}
                   onPress={() => {}}>
@@ -201,9 +202,9 @@ const RentDetails = ({navigation}) => {
             <StandardCard style={{flex: 1, elevation: 2}}>
               <View
                 style={{
-                  backgroundColor: theme.colors.white,
+                  backgroundColor: colors.white,
                   borderRadius: 10,
-                  shadowColor: theme.colors.primary,
+                  shadowColor: colors.primary,
                   shadowOffset: {width: 0, height: 2},
                   shadowOpacity: 0.25,
                   shadowRadius: 3.84,
@@ -230,12 +231,12 @@ const RentDetails = ({navigation}) => {
 
                 <Button
                   mode="contained"
-                  buttonColor={theme.colors.white}
+                  buttonColor={colors.white}
                   contentStyle={{paddingVertical: 4}}
                   labelStyle={{fontSize: 14, fontWeight: 'bold'}}
                   style={{
                     borderRadius: 5,
-                    borderColor: theme.colors.black,
+                    borderColor: colors.black,
                     borderWidth: 1,
                   }}
                   onPress={() => {}}>

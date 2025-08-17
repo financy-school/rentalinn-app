@@ -12,6 +12,7 @@ import StandardText from '../StandardText/StandardText';
 import StandardCard from '../StandardCard/StandardCard';
 
 import {ThemeContext} from '../../context/ThemeContext';
+import colors from '../../theme/color';
 
 const SendAnnouncement = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -51,7 +52,7 @@ const SendAnnouncement = ({handleClosePress}) => {
             handleClosePress();
           }}
           style={styles.closeButton}
-          iconColor={theme.colors.black}
+          iconColor={colors.black}
         />
         <StandardText
           textAlign="center"
@@ -95,13 +96,13 @@ const SendAnnouncement = ({handleClosePress}) => {
             <Checkbox
               status={rentPaid === true ? 'checked' : 'unchecked'}
               onPress={() => setRentPaid(true)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Everyone</Text>
             <Checkbox
               status={rentPaid === false ? 'checked' : 'unchecked'}
               onPress={() => setRentPaid(false)}
-              color={theme.colors.primary}
+              color={colors.primary}
             />
             <Text>Tenants with Dues</Text>
           </View>
