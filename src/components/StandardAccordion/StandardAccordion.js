@@ -10,6 +10,7 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -28,6 +29,8 @@ import {fadedColorOpacity, hexToRgba} from '../../theme/color';
 import {getIconForType} from '../../theme/iconsUtil';
 import {Button, IconButton, useTheme} from 'react-native-paper';
 import {Modal} from 'react-native';
+import {analyticsDashBoard} from '../../services/NetworkUtils';
+
 const AnimatedBtn = Animated.createAnimatedComponent(TouchableHighlight);
 
 import DateTimePicker, {
@@ -37,11 +40,12 @@ import DateTimePicker, {
 
 import dayjs from 'dayjs';
 import {ThemeContext} from '../../context/ThemeContext';
+import {CredentialsContext} from '../../context/CredentialsContext';
 
 const StandardAccordion = ({heading, icon, content}) => {
   const {theme: mode, toggleTheme} = useContext(ThemeContext);
   const theme = useTheme();
-
+  const {credentials} = useContext(CredentialsContext);
   const [expanded, setExpanded] = useState(false);
   const rotate = useSharedValue('0deg');
   const expandHeight = useSharedValue(0);
@@ -56,6 +60,41 @@ const StandardAccordion = ({heading, icon, content}) => {
     startDate: null,
     endDate: null,
   });
+
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const fetchAnalyticsData = useCallback(async (startDate, endDate) => {
+    if (!startDate || !endDate) return;
+
+    try {
+      setLoading(true);
+      // Format dates to required format for API
+      const formattedStartDate = dayjs(startDate).format('YYYY-MM-DD');
+      const formattedEndDate = dayjs(endDate).format('YYYY-MM-DD');
+
+      // Call analytics API with date range
+      const response = await analyticsDashBoard(
+        credentials.accessToken,
+        formattedStartDate,
+        formattedEndDate,
+      );
+      console.log('Analytics response:', response);
+
+      // Update state with the analytics data
+      setAnalyticsData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Effect to call analytics API when date range changes
+  useEffect(() => {
+    if (selectedRange.startDate && selectedRange.endDate) {
+      fetchAnalyticsData(selectedRange.startDate, selectedRange.endDate);
+    }
+  }, [selectedRange.startDate, selectedRange.endDate, fetchAnalyticsData]);
 
   const defaultStyles = useDefaultStyles();
 
@@ -241,12 +280,12 @@ const StandardAccordion = ({heading, icon, content}) => {
           REVENUE
         </StandardText>
         <StandardText fontWeight="bold" size="2xl">
-          ₹ 52365
+          ₹ {analyticsData?.incomeStats?.actualIncome || '0'}
         </StandardText>
 
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <StandardText size="sm" color="faded_gray">
-            +0.6%
+            {analyticsData?.incomeStats?.collectionRate || '0'}%
           </StandardText>
           <IconButton
             icon={'arrow-up'}

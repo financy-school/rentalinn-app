@@ -1,10 +1,26 @@
-import React from 'react';
-import {View, Image, StyleSheet} from 'react-native';
+import React, {useContext} from 'react';
+import {View, Image, StyleSheet, Dimensions} from 'react-native';
+import {ThemeContext} from '../context/ThemeContext';
+
+const {width} = Dimensions.get('window');
 
 const SplashScreen = () => {
+  const {theme: mode, colors} = useContext(ThemeContext);
+
   return (
-    <View style={styles.container}>
-      <Image source={require('../assets/splash.png')} style={styles.image} />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            mode === 'dark' ? colors.backgroundDark : colors.backgroundLight,
+        },
+      ]}>
+      <Image
+        source={require('../assets/splash.png')}
+        style={[styles.image, {width: width * 0.5, height: width * 0.5}]}
+        resizeMode="contain"
+      />
     </View>
   );
 };
@@ -14,7 +30,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
   },
   image: {
     width: 200,

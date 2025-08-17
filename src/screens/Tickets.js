@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -17,6 +17,8 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
+import {fetchTickets} from '../services/NetworkUtils';
+import {CredentialsContext} from '../context/CredentialsContext';
 
 const filterOptions = [
   {label: 'All', key: 'all', value: 30},
@@ -24,45 +26,45 @@ const filterOptions = [
   {label: 'Closed', key: '4', value: 20},
 ];
 
-const dummyTickets = [
-  {
-    id: '#10125',
-    timestamp: "19 Jul'23, 10:52PM",
-    status: 'Active',
-    raisedBy: 'Rihaan, Room 101',
-    issue: 'Washing Machine',
-    description:
-      'Washing machine is not working. Someone came and checked but it still not working.',
-  },
-  {
-    id: '#10126',
-    timestamp: "19 Jul'23, 10:52PM",
-    status: 'Closed',
-    raisedBy: 'Rihaan, Room 101',
-    issue: 'Washing Machine',
-    description:
-      'Washing machine is not working. Someone came and checked but it still not working.',
-  },
-  {
-    id: '#10127',
-    timestamp: "19 Jul'23, 10:52PM",
-    status: 'Active',
-    raisedBy: 'Rihaan, Room 101',
-    issue: 'Washing Machine',
-    description:
-      'Washing machine is not working. Someone came and checked but it still not working.',
-  },
-];
-
 const Tickets = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const theme = useTheme();
+  const {credentials} = useContext(CredentialsContext);
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetchTickets(
+        credentials.accessToken,
+        credentials.property_id,
+      );
+      console.log('Tickets fetched:', response.data);
+      setTickets(response.data.items || []);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [credentials.accessToken, credentials.property_id]);
+
+  useEffect(() => {
+    fetchData();
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchData();
+    });
+
+    return unsubscribe;
+  }, [navigation, fetchData]);
 
   return (
     <SafeAreaView
@@ -129,7 +131,14 @@ const Tickets = ({navigation}) => {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          {dummyTickets.map(ticket => (
+
+          {loading && (
+            <View style={{padding: 20, alignItems: 'center'}}>
+              <Text>Loading tickets...</Text>
+            </View>
+          )}
+
+          {tickets.map(ticket => (
             <StandardCard
               key={ticket.id}
               style={{marginBottom: 16, padding: 12}}>
@@ -207,7 +216,7 @@ const Tickets = ({navigation}) => {
             borderRadius: 30,
             backgroundColor: theme.colors.primary,
           }}
-          onPress={() => navigation.navigate('AddBed')}
+          onPress={() => navigation.navigate('AddTicket')}
         />
       </View>
     </SafeAreaView>

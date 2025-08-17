@@ -1,9 +1,6 @@
-import {
-  fontColorType,
-  fontSizeType,
-  fontWeightType,
-} from 'utils/types/typeStandardText';
+import {getColor} from './color';
 
+// Font sizes
 export const fontSizeMap = {
   xs: 10,
   sm: 14,
@@ -13,10 +10,9 @@ export const fontSizeMap = {
   '2xl': 32,
 };
 
-export const getFontSize = fontSize => {
-  return fontSizeMap[fontSize];
-};
+export const getFontSize = fontSize => fontSizeMap[fontSize] || fontSizeMap.md;
 
+// Font weights (map to custom font family names)
 export const handleFontWeight = fontWeight => {
   switch (fontWeight) {
     case 'semibold':
@@ -34,18 +30,7 @@ export const handleFontWeight = fontWeight => {
   }
 };
 
-export const fontColorMap = {
-  default_red: '#FF385C',
-  default_green: '#00940F',
-  default_orange: '#F39E09',
-  default_gray: '#222',
-  faded_gray: '#888',
-  default_white: '#fff',
-};
-
-export const getFontColor = fontColor => {
-  return fontColorMap[fontColor];
-};
+// Numeric font weights (for RN)
 export const createFontWeight = fontWeight => {
   switch (fontWeight) {
     case 'semibold':
@@ -56,5 +41,27 @@ export const createFontWeight = fontWeight => {
       return '400';
     default:
       return '300';
+  }
+};
+
+// Theme-aware font colors
+export const getFontColor = (fontColor, themeColors) => {
+  switch (fontColor) {
+    case 'default_red':
+      return getColor('error');
+    case 'default_green':
+      return getColor('success');
+    case 'default_orange':
+      return getColor('warning');
+    case 'faded_gray':
+      return getColor('textSecondary');
+    case 'default_white':
+      return getColor('white');
+    case 'textSecondary':
+      return themeColors.textSecondary;
+    case 'textPrimary':
+    case 'default_gray':
+    default:
+      return themeColors.textPrimary;
   }
 };

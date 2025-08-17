@@ -2,8 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  TextInput,
-  Button,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -14,23 +12,18 @@ import StepIndicator from 'react-native-step-indicator';
 import {
   ButtonText,
   Colors,
-  ExtraText,
-  ExtraView,
-  Line,
   MsgBox,
   StyledButton,
   StyledFormArea,
   StyledTextInput,
-  TextLink,
-  TextLinkContent,
 } from '../../../components/styles';
 import RNPickerSelect from 'react-native-picker-select';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 const stepLabels = ['Basic Details', 'Guardian Details'];
-import {MultiSelect} from 'react-native-element-dropdown';
+
 import {Formik} from 'formik';
 import LinearGradient from 'react-native-linear-gradient';
-const {brand, darkLight, primary} = Colors;
+const {darkLight, primary} = Colors;
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
@@ -63,7 +56,6 @@ export default function AddStudent({navigation}) {
   const [message, setMessage] = useState();
   const [messageType, setMessageType] = useState();
   const [classTeacherList, setClassTeacherList] = useState([]);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   const [showDatepicker, setShowDatepicker] = useState(false);
 

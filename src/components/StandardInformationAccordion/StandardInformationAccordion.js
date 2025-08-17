@@ -1,10 +1,10 @@
 import {View, StyleSheet, TouchableHighlight} from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import StandardCard from '../StandardCard/StandardCard';
 import StandardText from '../StandardText/StandardText';
 import Gap from '../Gap/Gap';
 import StandardSvg from '../StandardSvg/StandardSvg';
-import {fadedColorOpacity, hexToRgba} from '../../theme/color';
+import {fadedColorOpacity, hexToRgba, getColor} from '../../theme/color';
 import {getIconForType} from '../../theme/iconsUtil';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, {
@@ -12,13 +12,13 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import {ThemeContext} from '../../context/ThemeContext';
+import {useTheme} from 'react-native-paper';
 
 const AnimatedBtn = Animated.createAnimatedComponent(TouchableHighlight);
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 const StandardInformationAccordion = ({heading, icon, content}) => {
-  const {theme: mode} = useContext(ThemeContext);
+  const {colors} = useTheme(); // 🎨 get theme colors
 
   const [expanded, setExpanded] = useState(false);
   const [measured, setMeasured] = useState(false);
@@ -48,7 +48,6 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
 
   const onContentLayout = event => {
     const height = event.nativeEvent.layout.height;
-    console.log('Content Height:', height);
     if (!measured && height > 0) {
       contentHeight.value = height;
       setMeasured(true);
@@ -66,20 +65,27 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
                 <MaterialCommunityIcons
                   name={icon}
                   size={35}
-                  color={mode === 'dark' ? '#fff' : '#000'}
+                  color={colors.onSurface} // ✅ theme-aware icon color
                 />
               </View>
             )}
-            <StandardText fontWeight="bold" size="lg">
+            <StandardText fontWeight="bold" size="lg" color="default_gray">
               {heading}
             </StandardText>
           </View>
 
           <AnimatedBtn
-            underlayColor={hexToRgba('#ff385c', fadedColorOpacity)}
+            underlayColor={hexToRgba(
+              colors.primary ?? getColor('default_red'),
+              fadedColorOpacity,
+            )}
             onPress={toggleAccordion}
             style={[styles.dropDownIcon, rotateStyle]}>
-            <StandardSvg icon={getIconForType('Dropdown')} size="sm" />
+            <StandardSvg
+              icon={getIconForType('Dropdown')}
+              size="sm"
+              color={colors.primary}
+            />
           </AnimatedBtn>
         </View>
 

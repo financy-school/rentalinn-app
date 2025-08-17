@@ -1,28 +1,36 @@
 import React from 'react';
 import {SvgUri} from 'react-native-svg';
-import {Url} from 'url';
-import {iconSizeType} from 'utils/types/typeStandardText';
 import {getFontSize} from '../../theme/standardTextUtils';
 import {IconButton, useTheme} from 'react-native-paper';
 
-const StandardSvg = ({icon, size}) => {
-  const theme = useTheme();
-  const height = getFontSize(size);
-  const width = height;
-  //   return <SvgUri uri={icon} height={height} width={width}></SvgUri>;
+/**
+ * StandardSvg
+ *
+ * - Supports vector icons (via react-native-paper)
+ * - Supports remote SVGs (via SvgUri)
+ * - Theme-aware colors
+ */
+const StandardSvg = ({icon, size = 'md', uri, iconColor}) => {
+  const {colors} = useTheme();
+  const dimension = getFontSize(size);
+
+  // If a URI is provided, render a remote SVG
+  if (uri) {
+    return <SvgUri uri={uri} height={dimension} width={dimension} />;
+  }
+
+  // Otherwise render an IconButton
   return (
     <IconButton
-      icon={'chevron-down'}
-      iconColor={'#000'}
+      icon={icon} // ✅ dynamic icon name
+      iconColor={iconColor ?? colors.onSurface} // ✅ theme-aware, overrideable
       style={{
-        backgroundColor: theme.colors.light_gray,
-
+        backgroundColor: colors.surfaceVariant,
         padding: 0,
-
-        borderRadius: 20,
+        borderRadius: dimension, // make it circular
         elevation: 2,
       }}
-      size={20}
+      size={dimension}
     />
   );
 };

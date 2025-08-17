@@ -4,13 +4,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
-import {useNavigation, DrawerActions} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {Platform} from 'react-native';
 import Home from '../screens/Home';
 import Profile from '../screens/pages/Profile';
 import Rooms from '../screens/Rooms';
 import Tenants from '../screens/Tenant';
 import Tickets from '../screens/Tickets';
+import colors from '../theme/color';
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -18,24 +19,23 @@ const BottomNavigation = () => {
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={({route}) => ({
-        tabBarActiveTintColor: '#5168B6',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.light_gray,
+
         tabBarStyle: {
           display: 'flex',
-          backgroundColor: '#fff',
+          backgroundColor: colors.white,
           borderWidth: 0,
           height: Platform.OS === 'ios' ? 90 : 70,
           borderRadius: 20,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          shadowColor: '#000',
+          shadowColor: colors.light_black,
           shadowOffset: {
             width: 0,
             height: 2,
           },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
+          elevation: 4,
           position: 'absolute',
           bottom: 15,
           left: 20,
@@ -45,6 +45,7 @@ const BottomNavigation = () => {
           fontSize: 12,
           fontFamily: 'Metropolis-Regular',
           marginBottom: 5,
+          color: colors.textSecondary,
         },
         headerShown: false,
         tabBarIcon: ({focused, color, size}) => {
@@ -73,7 +74,6 @@ const BottomNavigation = () => {
             return <Ionicons name={iconName} size={size} color={color} />;
           } else if (route.name === 'Tickets') {
             iconName = focused ? 'ticket' : 'ticket-outline';
-
             return (
               <MaterialCommunityIcons
                 name={iconName}
@@ -91,7 +91,6 @@ const BottomNavigation = () => {
           tabBarLabel: 'Dashboard',
         }}
       />
-
       <Tab.Screen
         name="Rooms"
         component={Rooms}

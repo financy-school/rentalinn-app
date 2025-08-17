@@ -1,14 +1,12 @@
-import React, {useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
-  TextInput,
-  FlatList,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import {Avatar, Button, Card, FAB, Text, useTheme} from 'react-native-paper';
+import {Avatar, FAB, Text, useTheme} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
 
@@ -17,6 +15,8 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
+import {fetchTenants} from '../services/NetworkUtils';
+import {CredentialsContext} from '../context/CredentialsContext';
 
 const filterOptions = [
   {label: 'All', key: 'all', value: 30},
@@ -25,28 +25,45 @@ const filterOptions = [
   {label: 'Notice', key: '1', value: 20},
 ];
 
-const dummyBeds = [
-  {id: '1', name: 'Bed A1', status: 'occupied', type: '1'},
-  {id: '2', name: 'Bed A2', status: 'vacant', type: '1'},
-  {id: '3', name: 'Bed B1', status: 'vacant', type: '2'},
-  {id: '4', name: 'Bed C1', status: 'occupied', type: '3'},
-];
-
 const Tenants = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
+  const {credentials} = useContext(CredentialsContext);
   const theme = useTheme();
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-
-  const filteredBeds = dummyBeds.filter(bed => {
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'vacant') return bed.status === 'vacant';
-    return bed.type === selectedFilter;
-  });
+  const [loading, setLoading] = useState(true);
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
+  const [tenants, setTenants] = useState([]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchTenants(
+        credentials.accessToken,
+        credentials.property_id,
+      );
+
+      setTenants(res.data.items || []);
+    } catch (error) {
+      console.error('Error fetching tenants:', error);
+      setTenants([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [credentials.accessToken, credentials.property_id]);
+
+  useEffect(() => {
+    fetchData();
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchData();
+    });
+
+    return unsubscribe;
+  }, [navigation, fetchData]);
 
   return (
     <SafeAreaView
@@ -57,9 +74,8 @@ const Tenants = ({navigation}) => {
       }}>
       <View style={{flex: 1, backgroundColor: theme.colors.background}}>
         <ScrollView contentContainerStyle={{padding: 16}}>
-          {/* Search Bar */}
           <PaperInput
-            mode="flat" // looks more like RN TextInput
+            mode="flat"
             placeholder="Search Tenants..."
             value={search}
             onChangeText={setSearch}
@@ -114,8 +130,14 @@ const Tenants = ({navigation}) => {
             ))}
           </ScrollView>
 
-          {dummyBeds.map(bed => (
-            <StandardCard key={bed.id} style={{marginTop: 10}}>
+          {loading && (
+            <View style={{padding: 20, alignItems: 'center'}}>
+              <Text>Loading tickets...</Text>
+            </View>
+          )}
+
+          {tenants.map(tenant => (
+            <StandardCard key={tenant.id} style={{marginTop: 10}}>
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('TenantDetails', {});
@@ -126,15 +148,11 @@ const Tenants = ({navigation}) => {
                     justifyContent: 'space-between',
                   }}>
                   {/* LEFT: Avatar */}
-                  {/* <Avatar.Image
-               size={48}
-               source={require('../assets/avatar-placeholder.png')} // Replace with actual avatar
-               style={{ marginRight: 12, marginTop: 4 }}
-             /> */}
-
-                  <MaterialCommunityIcons
-                    name="account-circle"
+                  <Avatar.Image
                     size={120}
+                    source={{
+                      uri: 'https://avatar.iran.liara.run/public/37',
+                    }}
                     style={{
                       marginRight: 12,
                       marginTop: 4,
@@ -144,9 +162,7 @@ const Tenants = ({navigation}) => {
                     }}
                   />
 
-                  {/* RIGHT: Details */}
                   <View style={{flex: 1}}>
-                    {/* Header Row: Name Tag + 3-dot menu */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -161,12 +177,12 @@ const Tenants = ({navigation}) => {
                           paddingVertical: 4,
                         }}>
                         <StandardText fontWeight="bold" size="xl">
-                          Sumit Gupta
+                          {tenant.name}
                         </StandardText>
                       </View>
 
                       <Menu
-                        visible={menuVisible && anchorBedId === bed.id}
+                        visible={menuVisible && anchorBedId === tenant.id}
                         onDismiss={() => {
                           setMenuVisible(false);
                           setAnchorBedId(null);
@@ -175,7 +191,7 @@ const Tenants = ({navigation}) => {
                           <TouchableOpacity
                             onPress={() => {
                               setMenuVisible(true);
-                              setAnchorBedId(bed.id);
+                              setAnchorBedId(tenant.id);
                             }}
                             style={{paddingHorizontal: 8, paddingVertical: 4}}>
                             <MaterialCommunityIcons
@@ -206,7 +222,9 @@ const Tenants = ({navigation}) => {
                       />
                       <StandardText style={{marginLeft: 6}}>
                         Room:{' '}
-                        <Text style={{fontWeight: 'bold'}}>{bed.type}</Text>
+                        <Text style={{fontWeight: 'bold'}}>
+                          {tenant.room.name}
+                        </Text>
                       </StandardText>
                     </View>
 
@@ -223,7 +241,9 @@ const Tenants = ({navigation}) => {
                       />
                       <StandardText style={{marginLeft: 6}}>
                         Under Notice:{' '}
-                        <Text style={{fontWeight: 'bold'}}>Yes</Text>
+                        <Text style={{fontWeight: 'bold'}}>
+                          {tenant.underNotice ? 'Yes' : 'No'}
+                        </Text>
                       </StandardText>
                     </View>
 
@@ -239,7 +259,10 @@ const Tenants = ({navigation}) => {
                         color="#333"
                       />
                       <StandardText style={{marginLeft: 6}}>
-                        Rent Due: <Text style={{fontWeight: 'bold'}}>Yes</Text>
+                        Rent Due:{' '}
+                        <Text style={{fontWeight: 'bold'}}>
+                          {tenant.room.rentAmount}
+                        </Text>
                       </StandardText>
                     </View>
 
@@ -251,7 +274,9 @@ const Tenants = ({navigation}) => {
                       />
                       <StandardText style={{marginLeft: 6}}>
                         Joined:{' '}
-                        <Text style={{fontWeight: 'bold'}}>2025-01-23</Text>
+                        <Text style={{fontWeight: 'bold'}}>
+                          {tenant.check_in_date}
+                        </Text>
                       </StandardText>
                     </View>
                   </View>
@@ -276,7 +301,7 @@ const Tenants = ({navigation}) => {
             borderRadius: 30,
             backgroundColor: theme.colors.primary,
           }}
-          onPress={() => navigation.navigate('AddBed')}
+          onPress={() => navigation.navigate('AddTenant')}
         />
       </View>
     </SafeAreaView>

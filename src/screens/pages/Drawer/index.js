@@ -99,8 +99,8 @@ const DrawerContent = () => {
     <ScrollView style={{flex: 1, backgroundColor: '#fff'}}>
       <SafeAreaView style={{padding: 16, marginTop: 26}}>
         <Image
-          style={{width: 220, height: 52, alignSelf: 'center'}}
-          source={require('../../../assets/edumynd.png')}
+          style={{width: 220, height: 92, alignSelf: 'center'}}
+          source={require('../../../assets/rentalinn.png')}
           resizeMode="contain"
         />
         <View style={{marginTop: 16, alignItems: 'center'}}>

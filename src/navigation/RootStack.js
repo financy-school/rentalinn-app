@@ -11,6 +11,9 @@ import {useContext, useEffect, useState} from 'react';
 import RentDetails from '../screens/RentDetails';
 import RoomDetails from '../screens/RoomDetails';
 import TenantDetails from '../screens/TenantDetails';
+import AddRoom from '../screens/AddRoom';
+import AddTenant from '../screens/AddTenant';
+import AddTicket from '../screens/AddTicket';
 
 const Stack = createNativeStackNavigator();
 
@@ -103,6 +106,24 @@ const RootStack = () => {
               }}
               name="RoomDetails"
               component={RoomDetails}
+            />
+
+            <Stack.Screen
+              name="AddRoom"
+              component={AddRoom}
+              options={{title: 'Add Room'}}
+            />
+
+            <Stack.Screen
+              name="AddTenant"
+              component={AddTenant}
+              options={{title: 'Add Tenant'}}
+            />
+
+            <Stack.Screen
+              name="AddTicket"
+              component={AddTicket}
+              options={{title: 'Add Ticket'}}
             />
 
             <Stack.Screen

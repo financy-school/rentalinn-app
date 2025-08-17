@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
-import React, {ReactNode} from 'react';
-import {Text} from 'react-native-paper';
+import React from 'react';
+import {Text, useTheme} from 'react-native-paper';
 import {
   createFontWeight,
   getFontColor,
@@ -11,21 +11,24 @@ import {
 const StandardText = ({
   size = 'md',
   children,
-  color = 'default_gray',
+  color = 'textPrimary', // <-- default now comes from theme system
   italic = false,
   bold = false,
   fontWeight,
   textAlign = 'left',
   ...props
 }) => {
+  const {colors} = useTheme(); // 🎨 gets active theme colors
+
   const fontSize = getFontSize(size);
   const LINE_HEIGHT_RATIO = 1.5;
   const lineHeight = fontSize * LINE_HEIGHT_RATIO;
   const paddingTop = fontSize - lineHeight;
+
   const baseStyle = StyleSheet.create({
     base: {
       fontFamily: handleFontWeight(fontWeight),
-      color: getFontColor(color),
+      color: getFontColor(color, colors), // <-- uses theme-aware function
       fontWeight: createFontWeight(fontWeight),
       fontStyle: italic ? 'italic' : 'normal',
       fontSize: fontSize,

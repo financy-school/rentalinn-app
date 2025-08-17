@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -11,20 +11,19 @@ import {
 import {Avatar, Button, Card, FAB, Text, useTheme} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
-
 import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
+import {propertyRooms} from '../services/NetworkUtils';
+import {CredentialsContext} from '../context/CredentialsContext';
 
 const filterOptions = [
   {label: 'All', key: 'all', value: 30},
   {label: 'Vacant Beds', key: 'vacant', value: 20},
-
   {label: '4 Beds', key: '4', value: 20},
   {label: '1 Bed', key: '1', value: 20},
-  ,
   {label: '2 Beds', key: '2', value: 20},
   {label: '3 Beds', key: '3', value: 20},
 ];
@@ -38,10 +37,14 @@ const dummyBeds = [
 
 const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
+  const {credentials} = useContext(CredentialsContext);
   const theme = useTheme();
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const filteredBeds = dummyBeds.filter(bed => {
     if (selectedFilter === 'all') return true;
@@ -51,6 +54,57 @@ const Rooms = ({navigation}) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
+
+  const accessToken = credentials.accessToken;
+  const propertyId = credentials.property_id;
+
+  const fetchRooms = useCallback(async () => {
+    if (!accessToken || !propertyId) {
+      setError('Missing access token or property ID');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await propertyRooms(accessToken, propertyId);
+      console.log('Rooms fetched:', response.data);
+      const roomData = response.data.items || [];
+      setRooms(roomData);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching rooms:', err);
+      setError('Failed to load rooms. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, propertyId]);
+
+  useEffect(() => {
+    fetchRooms();
+
+    // Add a listener for when the screen receives focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchRooms();
+    });
+
+    // Clean up the listener when component unmounts
+    return unsubscribe;
+  }, [navigation, fetchRooms]);
+
+  const filteredRooms = rooms
+    .filter(room => {
+      if (!search) return true;
+
+      // Filter by search term
+      const searchTerm = search.toLowerCase();
+      return room.name.toLowerCase().includes(searchTerm);
+    })
+    .filter(room => {
+      if (selectedFilter === 'all') return true;
+      if (selectedFilter === 'vacant') return room.status === 'vacant';
+      return room.type === selectedFilter;
+    });
 
   return (
     <SafeAreaView
@@ -63,8 +117,8 @@ const Rooms = ({navigation}) => {
         <ScrollView contentContainerStyle={{padding: 16}}>
           {/* Search Bar */}
           <PaperInput
-            mode="flat" // looks more like RN TextInput
-            placeholder="Search Beds..."
+            mode="flat"
+            placeholder="Search Rooms..."
             value={search}
             onChangeText={setSearch}
             style={styles.searchBar}
@@ -118,201 +172,182 @@ const Rooms = ({navigation}) => {
             ))}
           </ScrollView>
 
-          {/* Bed Cards */}
-          {filteredBeds.map(bed => (
-            <StandardCard key={bed.id} style={{marginTop: 10}}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('RoomDetails', {bed})}>
-                {/* Header Row */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <MaterialCommunityIcons
-                      name="door"
-                      size={24}
-                      color={theme.colors.primary}
-                    />
-                    <StandardText style={{marginLeft: 8}} fontWeight="bold">
-                      Room {bed.name}
-                    </StandardText>
-                  </View>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <View
-                      style={{
-                        backgroundColor:
-                          bed.status === 'vacant' ? '#DFF5E1' : '#FFF2D8',
-                        borderRadius: 15,
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                      }}>
-                      <Text
+          {loading && (
+            <View style={{padding: 20, alignItems: 'center'}}>
+              <Text>Loading rooms...</Text>
+            </View>
+          )}
+
+          {error && (
+            <View style={{padding: 20, alignItems: 'center'}}>
+              <Text style={{color: 'red'}}>{error}</Text>
+              <Button
+                mode="contained"
+                onPress={fetchRooms}
+                style={{marginTop: 10}}>
+                Retry
+              </Button>
+            </View>
+          )}
+
+          {/* Room Cards */}
+          {!loading && !error && filteredRooms.length === 0 && (
+            <View style={{padding: 20, alignItems: 'center'}}>
+              <Text>No rooms found</Text>
+            </View>
+          )}
+
+          {/* Room Cards */}
+          {!loading &&
+            filteredRooms.map(room => (
+              <StandardCard key={room.id} style={{marginTop: 10}}>
+                {console.log('Rendering room:', room)}
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('RoomDetails', {room})}>
+                  {/* Header Row */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <MaterialCommunityIcons
+                        name="door"
+                        size={24}
+                        color={theme.colors.primary}
+                      />
+                      <StandardText style={{marginLeft: 8}} fontWeight="bold">
+                        Room {room.name || room.id}
+                      </StandardText>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <View
                         style={{
-                          color:
-                            bed.status === 'vacant' ? '#219653' : '#F2994A',
-                          fontWeight: 'bold',
-                          fontSize: 12,
+                          backgroundColor: room.isAvailable
+                            ? '#DFF5E1'
+                            : '#FFF2D8',
+                          borderRadius: 15,
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
                         }}>
-                        {bed.status === 'vacant' ? 'Available' : 'Occupied'}
-                      </Text>
-                    </View>
+                        <Text
+                          style={{
+                            color: room.isAvailable ? '#219653' : '#F2994A',
+                            fontWeight: 'bold',
+                            fontSize: 12,
+                          }}>
+                          {room.isAvailable ? 'Available' : 'Occupied'}
+                        </Text>
+                      </View>
 
-                    <Menu
-                      visible={menuVisible && anchorBedId === bed.id}
-                      onDismiss={() => {
-                        setMenuVisible(false);
-                        setAnchorBedId(null);
-                      }}
-                      anchor={
-                        <TouchableOpacity
+                      <Menu
+                        visible={menuVisible && anchorBedId === room.id}
+                        onDismiss={() => {
+                          setMenuVisible(false);
+                          setAnchorBedId(null);
+                        }}
+                        anchor={
+                          <TouchableOpacity
+                            onPress={() => {
+                              setMenuVisible(true);
+                              setAnchorBedId(room.id);
+                            }}
+                            style={{paddingHorizontal: 8, paddingVertical: 4}}>
+                            <MaterialCommunityIcons
+                              name="dots-vertical"
+                              size={20}
+                              color="#888"
+                            />
+                          </TouchableOpacity>
+                        }>
+                        <Menu.Item
                           onPress={() => {
-                            setMenuVisible(true);
-                            setAnchorBedId(bed.id);
+                            setMenuVisible(false);
+                            setAnchorBedId(null);
                           }}
-                          style={{paddingHorizontal: 8, paddingVertical: 4}}>
-                          <MaterialCommunityIcons
-                            name="dots-vertical"
-                            size={20}
-                            color="#888"
-                          />
-                        </TouchableOpacity>
-                      }>
-                      <Menu.Item
-                        onPress={() => {
-                          setMenuVisible(false);
-                          setAnchorBedId(null);
-                        }}
-                        title="Edit"
-                      />
-                      <Menu.Item
-                        onPress={() => {
-                          setMenuVisible(false);
-                          setAnchorBedId(null);
-                        }}
-                        title="Share"
-                      />
-                      <Menu.Item
-                        onPress={() => {
-                          setMenuVisible(false);
-                          setAnchorBedId(null);
-                        }}
-                        title="Send Message"
-                      />
-                      <Menu.Item
-                        onPress={() => {
-                          setMenuVisible(false);
-                          setAnchorBedId(null);
-                        }}
-                        title="Delete"
-                      />
-                    </Menu>
-                  </View>
-                </View>
-
-                {/* Bed Icons */}
-
-                {/* Info Rows */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 4,
-                  }}>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <MaterialCommunityIcons name="bed" size={20} color="#333" />
-                    <StandardText style={{marginLeft: 6}}>
-                      Bed: <Text style={{fontWeight: 'bold'}}> {bed.type}</Text>
-                    </StandardText>
-                  </View>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <View style={{flexDirection: 'row', marginVertical: 10}}>
-                      {[...Array(parseInt(bed.type)).keys()].map(index => (
-                        <MaterialCommunityIcons
-                          key={index}
-                          name={
-                            index <
-                            (bed.status === 'vacant'
-                              ? 0
-                              : parseInt(bed.type) - 1)
-                              ? 'bed'
-                              : 'bed-outline'
-                          }
-                          size={24}
-                          color={
-                            index <
-                            (bed.status === 'vacant'
-                              ? 0
-                              : parseInt(bed.type) - 1)
-                              ? theme.colors.primary
-                              : '#ccc'
-                          }
-                          style={{marginRight: 4}}
+                          title="Edit"
                         />
-                      ))}
+                        <Menu.Item
+                          onPress={() => {
+                            setMenuVisible(false);
+                            setAnchorBedId(null);
+                          }}
+                          title="Share"
+                        />
+                        <Menu.Item
+                          onPress={() => {
+                            setMenuVisible(false);
+                            setAnchorBedId(null);
+                          }}
+                          title="Send Message"
+                        />
+                        <Menu.Item
+                          onPress={() => {
+                            setMenuVisible(false);
+                            setAnchorBedId(null);
+                          }}
+                          title="Delete"
+                        />
+                      </Menu>
                     </View>
                   </View>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: 4,
-                  }}>
-                  <MaterialCommunityIcons
-                    name="calendar-alert"
-                    size={20}
-                    color="#333"
-                  />
-                  <StandardText style={{marginLeft: 6}}>
-                    Under Notice: <Text style={{fontWeight: 'bold'}}>1</Text>
-                  </StandardText>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: 4,
-                  }}>
-                  <MaterialCommunityIcons name="cash" size={20} color="#333" />
-                  <StandardText style={{marginLeft: 6}}>
-                    Rent Due: <Text style={{fontWeight: 'bold'}}>2</Text>
-                  </StandardText>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 8,
-                  }}>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+
+                  {/* Room details - adapt these based on your API data structure */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 4,
+                    }}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <MaterialCommunityIcons
+                        name="bed"
+                        size={20}
+                        color="#333"
+                      />
+                      <StandardText style={{marginLeft: 6}}>
+                        Beds:{' '}
+                        <Text style={{fontWeight: 'bold'}}>
+                          {room.totalBeds || 0}
+                        </Text>
+                      </StandardText>
+                    </View>
+                  </View>
+
+                  {/* Additional room info */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: 4,
+                    }}>
                     <MaterialCommunityIcons
-                      name="alert-circle-outline"
+                      name="ruler"
                       size={20}
                       color="#333"
                     />
                     <StandardText style={{marginLeft: 6}}>
-                      Active Ticket: <Text style={{fontWeight: 'bold'}}>1</Text>
+                      Size:{' '}
+                      <Text style={{fontWeight: 'bold'}}>{room.area} sqft</Text>
                     </StandardText>
                   </View>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <View style={{alignItems: 'flex-end'}}>
-                      <Button
-                        mode="outlined"
-                        onPress={() => {}}
-                        labelStyle={{fontWeight: 'bold'}}>
-                        ADD TENANT
-                      </Button>
-                    </View>
+
+                  {/* Add tenant button */}
+                  <View style={{alignItems: 'flex-end', marginTop: 10}}>
+                    <Button
+                      mode="outlined"
+                      onPress={() => {
+                        navigation.navigate('AddTenant');
+                      }}
+                      labelStyle={{fontWeight: 'bold'}}>
+                      ADD TENANT
+                    </Button>
                   </View>
-                </View>
-              </TouchableOpacity>
-            </StandardCard>
-          ))}
+                </TouchableOpacity>
+              </StandardCard>
+            ))}
         </ScrollView>
 
         <FAB
@@ -325,7 +360,7 @@ const Rooms = ({navigation}) => {
             borderRadius: 30,
             backgroundColor: theme.colors.primary,
           }}
-          onPress={() => navigation.navigate('AddBed')}
+          onPress={() => navigation.navigate('AddRoom')}
         />
       </View>
     </SafeAreaView>

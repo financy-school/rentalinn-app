@@ -28,7 +28,8 @@ import Gap from '../components/Gap/Gap';
 const RoomDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
   const theme = useTheme();
-  const {bed} = route.params;
+  const {room} = route.params;
+  console.log('Bed Details:', room);
 
   const scrollX = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get('window').width;
@@ -47,6 +48,11 @@ const RoomDetails = ({navigation, route}) => {
     {id: '3', name: 'Bed B1', status: 'vacant', type: '2'},
     {id: '4', name: 'Bed C1', status: 'occupied', type: '3'},
   ];
+  const roomName = room?.name || 'Unknown';
+  const isAvailable = room?.isAvailable ?? true;
+  const bedroomCount = room?.bedroomCount || 0;
+  const bathroomCount = room?.bathroomCount || 0;
+  const roomArea = room?.area || 'N/A';
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
@@ -109,16 +115,22 @@ const RoomDetails = ({navigation, route}) => {
           })}
         </View>
 
-        {/* Three Dot Menu */}
         <TouchableOpacity
           onPress={() => console.log('Show Menu')}
           style={{
             position: 'absolute',
             top: 20,
             right: 20,
-            backgroundColor: 'red',
+            backgroundColor: 'transparent', // Changed from red
+            padding: 8, // Added padding for better touch target
+            borderRadius: 20, // Optional: makes it circular
           }}>
-          <MaterialCommunityIcons name="dots-vertical" size={24} color="#000" />
+          <MaterialCommunityIcons
+            name="dots-vertical"
+            size={24}
+            color="white"
+          />
+          {/* Changed to white for visibility */}
         </TouchableOpacity>
       </View>
 
@@ -141,24 +153,24 @@ const RoomDetails = ({navigation, route}) => {
             color={theme.colors.primary}
           />
           <StandardText style={{marginLeft: 6}} fontWeight="bold" size="xl">
-            Room {bed.name}
+            Room {room.name}
           </StandardText>
         </View>
 
         <View
           style={{
-            backgroundColor: bed.status === 'vacant' ? '#DFF5E1' : '#FFF2D8',
+            backgroundColor: room.status === 'vacant' ? '#DFF5E1' : '#FFF2D8',
             paddingHorizontal: 10,
             paddingVertical: 4,
             borderRadius: 15,
           }}>
           <Text
             style={{
-              color: bed.status === 'vacant' ? '#219653' : '#F2994A',
+              color: room.status === 'vacant' ? '#219653' : '#F2994A',
               fontWeight: 'bold',
               fontSize: 12,
             }}>
-            {bed.status === 'vacant' ? 'Available' : 'Occupied'}
+            {room.isAvailable ? 'Available' : 'Occupied'}
           </Text>
         </View>
       </View>
@@ -189,7 +201,7 @@ const RoomDetails = ({navigation, route}) => {
                   fontWeight="bold"
                   size="md">
                   Bed:{' '}
-                  <Text style={{color: '#F2994A'}}>{bed.totalBeds || 4}</Text>
+                  <Text style={{color: '#F2994A'}}>{room.totalBeds || 4}</Text>
                 </StandardText>
               </View>
 
@@ -224,7 +236,7 @@ const RoomDetails = ({navigation, route}) => {
                   size="md">
                   Rent Due:{' '}
                   <Text style={{color: '#F2994A'}}>
-                    {bed.rentDueCount || 2}
+                    {room.rentDueCount || 2}
                   </Text>
                 </StandardText>
               </View>
@@ -270,14 +282,14 @@ const RoomDetails = ({navigation, route}) => {
                   size="md">
                   Active Ticket:{' '}
                   <Text style={{color: '#F2994A'}}>
-                    {bed.activeTickets || 1}
+                    {room.activeTickets || 1}
                   </Text>
                 </StandardText>
               </View>
               <StandardText
                 style={{marginLeft: 28, color: 'gray', marginTop: 4}}
                 size="sm">
-                {bed.ticketMessage || 'Cupboard door needs fixing'}
+                {room.ticketMessage || 'Cupboard door needs fixing'}
               </StandardText>
 
               {/* Under Notice */}
@@ -297,7 +309,7 @@ const RoomDetails = ({navigation, route}) => {
                   fontWeight="bold"
                   size="md">
                   Under Notice:{' '}
-                  <Text style={{color: '#F2994A'}}>{bed.underNotice || 1}</Text>
+                  <Text style={{color: '#F2994A'}}>{room.room || 1}</Text>
                 </StandardText>
               </View>
               <View style={{marginLeft: 28, marginTop: 6}}>
@@ -324,14 +336,9 @@ const RoomDetails = ({navigation, route}) => {
             Amenities
           </StandardText>
           <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 10}}>
-            {(
-              bed.amenities || [
-                'WiFi',
-                'AC',
-                'Heater',
-                'Wardrobe',
-                'Attached Bathroom',
-              ]
+            {(room.amenities
+              ? room.amenities.split(',').map(item => item.trim())
+              : ['WiFi', 'AC', 'Heater', 'Wardrobe', 'Attached Bathroom']
             ).map((item, idx) => (
               <Chip
                 key={idx}
@@ -442,7 +449,8 @@ const RoomDetails = ({navigation, route}) => {
                     }}>
                     <MaterialCommunityIcons name="bed" size={20} color="#333" />
                     <StandardText style={{marginLeft: 6}}>
-                      Room: <Text style={{fontWeight: 'bold'}}>{bed.type}</Text>
+                      Room:{' '}
+                      <Text style={{fontWeight: 'bold'}}>{room.type}</Text>
                     </StandardText>
                   </View>
 

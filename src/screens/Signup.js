@@ -5,8 +5,9 @@ import {TextInput, Button, Text, Snackbar, useTheme} from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {CredentialsContext} from '../context/CredentialsContext';
-import {handleSchoolUserSignup} from '../services/NetworkUtils';
+import {handleUserSignup} from '../services/NetworkUtils';
 import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
+import {Image} from 'react-native';
 
 const SignUp = ({navigation}) => {
   const [hidePassword, setHidePassword] = useState(true);
@@ -22,13 +23,24 @@ const SignUp = ({navigation}) => {
 
     try {
       delete credentials.confirmPassword;
-      credentials.business_name = credentials.property_name;
-      const response = await handleSchoolUserSignup(credentials);
+      const response = await handleUserSignup(credentials);
       const {user, message} = response;
-      const token = 'Bearer';
-      persistLogin({...user, token}, message, 'success');
     } catch (error) {
-      setMessage('An error occurred. Please check your network and try again.');
+      let errorMessage =
+        'An error occurred. Please check your network and try again.';
+
+      if (error.response && error.response.data) {
+        if (error.response.data.message) {
+          if (Array.isArray(error.response.data.message)) {
+            errorMessage = error.response.data.message.join(', ');
+          } else {
+            errorMessage = error.response.data.message;
+          }
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      }
+      setMessage(errorMessage);
       setVisible(true);
     } finally {
       setSubmitting(false);
@@ -71,10 +83,21 @@ const SignUp = ({navigation}) => {
           />
         </TouchableOpacity>
         <View style={{alignItems: 'center', marginBottom: 20}}>
-          <MaterialCommunityIcons
+          {/* <MaterialCommunityIcons
             name="home-city-outline"
             size={80}
             color={colors.primary}
+          /> */}
+
+          <Image
+            style={{
+              width: 100,
+              height: 100,
+              alignSelf: 'center',
+              borderRadius: 50,
+            }}
+            source={require('../assets/rentalinn.png')}
+            resizeMode="contain"
           />
           <Text variant="displayMedium" style={{color: colors.primary}}>
             Sign Up
@@ -83,58 +106,55 @@ const SignUp = ({navigation}) => {
 
         <Formik
           initialValues={{
-            name: '',
-            phone_number: '',
-            property_name: '',
-            address: '',
+            firstName: '',
+            lastName: '',
             email: '',
             password: '',
             confirmPassword: '',
+            role: 'landlord',
+            phone: '',
+            address: '',
+            city: '',
+            state: '',
+            postalCode: '',
+            country: '',
           }}
           onSubmit={(values, {setSubmitting}) =>
             handleSignup(values, setSubmitting)
           }>
           {({handleChange, handleBlur, handleSubmit, values, isSubmitting}) => (
-            <>
+            <View style={{marginBottom: 20}}>
               <TextInput
-                label="Full Name"
+                label="First Name"
                 mode="outlined"
-                value={values.name}
-                onChangeText={handleChange('name')}
-                onBlur={handleBlur('name')}
+                value={values.firstName}
+                onChangeText={handleChange('firstName')}
+                onBlur={handleBlur('firstName')}
                 left={<TextInput.Icon icon="account" color={colors.primary} />}
                 style={{marginTop: 15}}
               />
+
+              <TextInput
+                label="Last Name"
+                mode="outlined"
+                value={values.lastName}
+                onChangeText={handleChange('lastName')}
+                onBlur={handleBlur('lastName')}
+                left={<TextInput.Icon icon="account" color={colors.primary} />}
+                style={{marginTop: 15}}
+              />
+
               <TextInput
                 label="Phone Number"
                 mode="outlined"
-                value={values.phone_number}
-                onChangeText={handleChange('phone_number')}
-                onBlur={handleBlur('phone_number')}
+                value={values.phone}
+                onChangeText={handleChange('phone')}
+                onBlur={handleBlur('phone')}
                 keyboardType="phone-pad"
                 left={<TextInput.Icon icon="phone" color={colors.primary} />}
                 style={{marginTop: 15}}
               />
-              <TextInput
-                label="PG Name"
-                mode="outlined"
-                value={values.property_name}
-                onChangeText={handleChange('property_name')}
-                onBlur={handleBlur('property_name')}
-                left={<TextInput.Icon icon="home" color={colors.primary} />}
-                style={{marginTop: 15}}
-              />
-              <TextInput
-                label="Address"
-                mode="outlined"
-                value={values.address}
-                onChangeText={handleChange('address')}
-                onBlur={handleBlur('address')}
-                left={
-                  <TextInput.Icon icon="map-marker" color={colors.primary} />
-                }
-                style={{marginTop: 15}}
-              />
+
               <TextInput
                 label="Email"
                 mode="outlined"
@@ -180,6 +200,61 @@ const SignUp = ({navigation}) => {
                 style={{marginTop: 15}}
               />
 
+              <TextInput
+                label="Address"
+                mode="outlined"
+                value={values.address}
+                onChangeText={handleChange('address')}
+                onBlur={handleBlur('address')}
+                left={
+                  <TextInput.Icon icon="map-marker" color={colors.primary} />
+                }
+                style={{marginTop: 15}}
+              />
+
+              <TextInput
+                label="City"
+                mode="outlined"
+                value={values.city}
+                onChangeText={handleChange('city')}
+                onBlur={handleBlur('city')}
+                left={<TextInput.Icon icon="city" color={colors.primary} />}
+                style={{marginTop: 15}}
+              />
+
+              <TextInput
+                label="State"
+                mode="outlined"
+                value={values.state}
+                onChangeText={handleChange('state')}
+                onBlur={handleBlur('state')}
+                left={<TextInput.Icon icon="map" color={colors.primary} />}
+                style={{marginTop: 15}}
+              />
+
+              <TextInput
+                label="Postal Code"
+                mode="outlined"
+                value={values.postalCode}
+                onChangeText={handleChange('postalCode')}
+                onBlur={handleBlur('postalCode')}
+                keyboardType="numeric"
+                left={
+                  <TextInput.Icon icon="code-brackets" color={colors.primary} />
+                }
+                style={{marginTop: 15}}
+              />
+
+              <TextInput
+                label="Country"
+                mode="outlined"
+                value={values.country}
+                onChangeText={handleChange('country')}
+                onBlur={handleBlur('country')}
+                left={<TextInput.Icon icon="flag" color={colors.primary} />}
+                style={{marginTop: 15}}
+              />
+
               <Button
                 mode="contained"
                 onPress={handleSubmit}
@@ -199,7 +274,7 @@ const SignUp = ({navigation}) => {
                   Already have an account? Sign In
                 </Text>
               </TouchableOpacity>
-            </>
+            </View>
           )}
         </Formik>
 
