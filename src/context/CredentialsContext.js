@@ -1,5 +1,6 @@
 import React, {createContext, useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getOwnerDetails} from '../services/NetworkUtils';
 
 export const CredentialsContext = createContext();
 
@@ -11,6 +12,7 @@ export const CredentialsProvider = ({children}) => {
     try {
       const data = await AsyncStorage.getItem('pgOwnerCredentials');
       if (data !== null) {
+        const userDetails = await getOwnerDetails(JSON.parse(data));
         setCredentials(JSON.parse(data));
       }
       console.log('Credentials loaded:', data);

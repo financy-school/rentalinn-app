@@ -16,6 +16,19 @@ export const handleUserLogin = async credentials => {
   return login_res.data;
 };
 
+export const getOwnerDetails = async credentials => {
+  const url = `${FINANCY_ENDPOINT_URL}/users/${credentials.id}`;
+
+  const owner_res = await axios.get(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${credentials.accessToken}`,
+    },
+  });
+
+  return owner_res.data;
+};
+
 export const analyticsDashBoard = (accessToken, startDate, endDate) => {
   let url = `${FINANCY_ENDPOINT_URL}/analytics/dashboard`;
 
@@ -107,7 +120,7 @@ export const addTenant = (accessToken, propertyId, tenantData) => {
 
   const add_tenant_res = axios.post(
     url,
-    {...tenantData, propertyId: propertyId.toString()},
+    {...tenantData, propertyId: propertyId},
     {
       headers: {
         'Content-Type': 'application/json',

@@ -11,7 +11,7 @@ import {menuItems} from './constant';
 const DrawerContent = () => {
   const navigation = useNavigation();
   const {credentials, setCredentials} = useContext(CredentialsContext);
-  const {owner_name, email, phone_number} = credentials;
+  const {firstName, email, phone} = credentials;
 
   const handleLogout = async () => {
     setCredentials(null);
@@ -105,10 +105,10 @@ const DrawerContent = () => {
         />
         <View style={{marginTop: 16, alignItems: 'center'}}>
           <StandardText fontWeight="bold" style={{fontSize: 18}}>
-            Sumit Gupta
+            {firstName}
           </StandardText>
           <StandardText style={{fontSize: 14, color: '#666'}}>
-            {email}, +91 {phone_number}
+            {email}, +91 {phone}
           </StandardText>
         </View>
 
