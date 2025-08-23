@@ -10,6 +10,7 @@ import {
   Portal,
   FAB,
   Button,
+  ActivityIndicator,
 } from 'react-native-paper';
 import {ScrollView} from 'react-native-gesture-handler';
 import StandardText from '../StandardText/StandardText';
@@ -18,6 +19,7 @@ import {ThemeContext} from '../../context/ThemeContext';
 import ContactsLib from 'react-native-contacts';
 import {Linking, Alert} from 'react-native';
 import {colors} from 'react-native-elements';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; // Add this import
 
 const Contacts = ({handleClosePress}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -27,9 +29,10 @@ const Contacts = ({handleClosePress}) => {
   const [showNewContact, setShowNewContact] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const loadContacts = async () => {
+      setLoading(true);
       try {
         if (Platform.OS === 'android') {
           const permission = await PermissionsAndroid.request(
@@ -46,6 +49,7 @@ const Contacts = ({handleClosePress}) => {
       } catch (error) {
         console.error('Error loading contacts', error);
       }
+      setLoading(false);
     };
 
     loadContacts();
@@ -114,7 +118,6 @@ const Contacts = ({handleClosePress}) => {
             style={styles.closeButton}
             iconColor={colors.black}
           />
-
           <StandardText
             textAlign="center"
             size="md"
@@ -124,7 +127,13 @@ const Contacts = ({handleClosePress}) => {
           </StandardText>
 
           <StandardCard>
-            {contacts.length === 0 ? (
+            {loading ? (
+              <ActivityIndicator
+                animating={true}
+                size="large"
+                style={{marginVertical: 20}}
+              />
+            ) : contacts.length === 0 ? (
               <StandardText
                 textAlign="center"
                 size="sm"
@@ -151,67 +160,84 @@ const Contacts = ({handleClosePress}) => {
               </>
             )}
 
-            {contacts.map((contact, index) => (
-              <List.Item
-                key={index}
-                title={contact.displayName || contact.givenName}
-                description={
-                  contact.phoneNumbers.length > 0
-                    ? contact.phoneNumbers[0].number
-                    : 'No number'
-                }
-                left={() => (
-                  <Avatar.Text
-                    label={(contact.displayName || contact.givenName || '?')[0]}
-                    size={36}
-                  />
-                )}
-                right={() => {
-                  const phone =
-                    contact.phoneNumbers[0]?.number?.replace(/\s+/g, '') || '';
+            {!loading &&
+              contacts.map((contact, index) => (
+                <List.Item
+                  key={index}
+                  title={contact.displayName || contact.givenName}
+                  description={
+                    contact.phoneNumbers.length > 0
+                      ? contact.phoneNumbers[0].number
+                      : 'No number'
+                  }
+                  left={() => (
+                    <Avatar.Text
+                      label={
+                        (contact.displayName || contact.givenName || '?')[0]
+                      }
+                      size={36}
+                    />
+                  )}
+                  right={() => {
+                    let phone = contact.phoneNumbers[0]?.number || '';
+                    // Remove spaces, dashes, parentheses, etc.
+                    phone = phone.replace(/[^+\d]/g, '');
 
-                  return (
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                      {/* Call Icon */}
-                      <IconButton
-                        icon="phone"
-                        onPress={() => {
-                          if (phone) {
-                            Linking.openURL(`tel:${phone}`);
-                          } else {
-                            Alert.alert('No number available to call');
-                          }
-                        }}
-                      />
-                      {/* WhatsApp Icon */}
-                      <IconButton
-                        icon="whatsapp"
-                        iconColor="#25D366"
-                        onPress={() => {
-                          if (phone) {
-                            const url = `whatsapp://send?phone=${phone}`;
-                            Linking.canOpenURL(url)
-                              .then(supported => {
-                                if (supported) {
-                                  Linking.openURL(url);
-                                } else {
-                                  Alert.alert(
-                                    'WhatsApp not installed or number is invalid',
-                                  );
-                                }
-                              })
-                              .catch(err => console.error('Error', err));
-                          } else {
-                            Alert.alert('No number available for WhatsApp');
-                          }
-                        }}
-                      />
-                    </View>
-                  );
-                }}
-                style={styles.contactCard}
-              />
-            ))}
+                    // WhatsApp expects country code, so ensure it starts with '+'
+                    if (phone && !phone.startsWith('+')) {
+                      phone = '+91' + phone; // Change '+91' to your default country code if needed
+                    }
+
+                    const message = encodeURIComponent('Hello from RentalInn!'); // You can customize this message
+
+                    return (
+                      <View
+                        style={{flexDirection: 'row', alignItems: 'center'}}>
+                        {/* Call Icon */}
+                        <IconButton
+                          icon="phone"
+                          onPress={() => {
+                            if (phone) {
+                              Linking.openURL(`tel:${phone}`);
+                            } else {
+                              Alert.alert('No number available to call');
+                            }
+                          }}
+                        />
+                        <IconButton
+                          icon={() => (
+                            <MaterialCommunityIcons
+                              name="whatsapp"
+                              size={24}
+                              color="#25D366"
+                            />
+                          )}
+                          onPress={() => {
+                            if (phone) {
+                              // Ensure proper format for wa.me (no '+')
+                              let waPhone = phone.replace('+', '');
+
+                              const message = encodeURIComponent(
+                                'Hello from RentalInn!',
+                              );
+                              const url = `https://wa.me/${waPhone}?text=${message}`;
+
+                              Linking.openURL(url).catch(() => {
+                                Alert.alert(
+                                  'Could not open WhatsApp. Please check the number.',
+                                );
+                              });
+                            } else {
+                              Alert.alert('No number available for WhatsApp');
+                            }
+                          }}
+                        />
+                      </View>
+                    );
+                  }}
+                  style={styles.contactCard}
+                />
+              ))}
           </StandardCard>
         </View>
       </ScrollView>
