@@ -1,4 +1,10 @@
-import React, {useCallback, useContext, useRef, useState} from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   ScrollView,
@@ -25,20 +31,50 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import colors from '../theme/color';
+import {getDocument} from '../services/NetworkUtils'; // adjust path if needed
+import {CredentialsContext} from '../context/CredentialsContext';
 
 const RoomDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
+  const {credentials} = useContext(CredentialsContext);
   const theme = useTheme();
   const {room} = route.params;
-  console.log('Bed Details:', room);
+  console.log('Room Details:', room);
 
   const scrollX = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get('window').width;
 
-  const images = [
-    'https://media-hosting.imagekit.io/c4a5665e008c4fbe/kam-idris-_HqHX3LBN18-unsplash.jpg?Expires=1839138745&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=yUULa32ynOWsyruAkfKgaSajINzJxq-0~IlHfzLhi3EsN1pnU~WGZ2pYYY6L6G9YYLp-LEEp-d-sAc~aL9FgIXNMSyL48stJRDHt0Q6E9CcUiPD8zbpH6h7ZYosy8ECEAB4Cg0BOaMhJVaOIjkfp7pyU8o1cw2FvfB21Bmfx~xqp4B~I9WTFS-vxfkF~0haqQUFL1wkLS9h~4Z15Ler1FCPIVgpirrH2p9471DPnEoZr7xodHlxaY7TVrvqkS-tJKahBlr2xNsJBYg4OSm1ApYxlfZTR66Wg7IYGR8oiHLHlcTCBP4udPqGhJ5-WWjh7CxDYZOjZ4bkK5OTBjqB3Ig__',
-    'https://media-hosting.imagekit.io/683e986cb4b74d23/christopher-jolly-GqbU78bdJFM-unsplash.jpg?Expires=1839138745&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=qqQxVc2ZMgpl3EE6vqkFEs9DmpiGWHLNr939J~JXBeHl1BgnG7DoP9icHDdtRChgrjX~6eAW-UIQNOcI-olTEQTawSIXu1loNdhtc3HKz45UeR3-1auL8KYCQ9Q0pJHvu7bTxIcQgUZWi6XzQDk-Etav-UYtQiI3Pub~IOCUNeLlWBmVvjUhg31Azl985zIMfjhOiwCi54l4vXlL-B7QQQg4Byqk1S4De2HbcTUCN8WNNnUxqjwapxoQ-RvKsQaLr8bN05Wuh8H5AQE73yqej7ksNmYQaGyYqYf13wAkyf955-Ecc~0VWKQ3WlPLlffJgqAKEEUS2tWDyJHZF92htw__',
-  ];
+  const [imageUrls, setImageUrls] = useState([]);
+
+  useEffect(() => {
+    const fetchImageUrls = async () => {
+      if (
+        room.image_document_id_list &&
+        room.image_document_id_list.length > 0
+      ) {
+        console.log('Fetching image URLs...');
+        const urls = await Promise.all(
+          room.image_document_id_list.map(async docId => {
+            try {
+              const res = await getDocument(
+                credentials.accessToken,
+                credentials.property_id,
+                docId,
+              );
+              console.log('Document fetched successfully:', res.data);
+              return res.data.download_url; // adjust if your API returns differently
+            } catch (e) {
+              console.error('Error fetching document for ID', docId, e);
+              return null;
+            }
+          }),
+        );
+        console.log('Fetched image URLs:', urls);
+        setImageUrls(urls.filter(Boolean));
+      }
+    };
+    fetchImageUrls();
+  }, [room.image_document_id_list]);
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
@@ -49,11 +85,6 @@ const RoomDetails = ({navigation, route}) => {
     {id: '3', name: 'Bed B1', status: 'vacant', type: '2'},
     {id: '4', name: 'Bed C1', status: 'occupied', type: '3'},
   ];
-  const roomName = room?.name || 'Unknown';
-  const isAvailable = room?.isAvailable ?? true;
-  const bedroomCount = room?.bedroomCount || 0;
-  const bathroomCount = room?.bathroomCount || 0;
-  const roomArea = room?.area || 'N/A';
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
@@ -68,7 +99,7 @@ const RoomDetails = ({navigation, route}) => {
             {useNativeDriver: false},
           )}
           scrollEventThrottle={16}>
-          {images.map((img, index) => (
+          {imageUrls.map((img, index) => (
             <Image
               key={index}
               source={{uri: img}}
@@ -89,7 +120,7 @@ const RoomDetails = ({navigation, route}) => {
             alignSelf: 'center',
             flexDirection: 'row',
           }}>
-          {images.map((_, index) => {
+          {imageUrls.map((_, index) => {
             const opacity = scrollX.interpolate({
               inputRange: [
                 screenWidth * (index - 1),

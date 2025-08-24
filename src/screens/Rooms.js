@@ -16,7 +16,8 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
-import {propertyRooms} from '../services/NetworkUtils';
+import Share from 'react-native-share';
+import {getDocument, propertyRooms} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
@@ -106,6 +107,52 @@ const Rooms = ({navigation}) => {
       if (selectedFilter === 'vacant') return room.status === 'vacant';
       return room.type === selectedFilter;
     });
+
+  // Helper to share room details
+  const handleShareRoom = async room => {
+    try {
+      // Build message
+      const message = `Room Details:\nName: ${room.name || room.id}\nStatus: ${
+        room.isAvailable ? 'Available' : 'Occupied'
+      }\nBeds: ${room.totalBeds || room.bedroomCount || 0}\nSize: ${
+        room.area
+      } sqft`;
+
+      // Get image URL from document ID if available
+      let imageUrl = null;
+      if (
+        room.image_document_id_list &&
+        room.image_document_id_list.length > 0
+      ) {
+        const documentId = room.image_document_id_list[0];
+        console.log('Fetching image URL for document ID:', documentId);
+        if (documentId) {
+          try {
+            // getDocument should be imported from your services
+            const result = await getDocument(
+              accessToken,
+              propertyId,
+              documentId,
+            );
+            console.log('Fetched image URL:', result);
+            imageUrl = result?.data?.download_url || null;
+          } catch (err) {
+            console.log('Error fetching image URL:', err);
+          }
+        }
+      }
+      console.log('Sharing room with image URL:', imageUrl);
+
+      const shareOptions = {
+        title: 'Share Room',
+        message,
+        url: imageUrl || undefined,
+      };
+      await Share.open(shareOptions);
+    } catch (error) {
+      console.log('Share error:', error);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -273,6 +320,7 @@ const Rooms = ({navigation}) => {
                           onPress={() => {
                             setMenuVisible(false);
                             setAnchorBedId(null);
+                            handleShareRoom(room);
                           }}
                           title="Share"
                         />

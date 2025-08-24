@@ -1,5 +1,5 @@
 import React, {useContext, useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View, Image} from 'react-native';
 import {
   Button,
   Checkbox,
@@ -12,10 +12,17 @@ import {
 import {Formik} from 'formik';
 import * as Yup from 'yup';
 import {CredentialsContext} from '../context/CredentialsContext';
-import {createRoom} from '../services/NetworkUtils';
+import {
+  createRoom,
+  uploadDocument,
+  createDocument,
+} from '../services/NetworkUtils';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import colors from '../theme/color';
+import StandardText from '../components/StandardText/StandardText';
+
+import * as ImagePicker from 'react-native-image-picker';
 
 const AddRoomSchema = Yup.object().shape({
   name: Yup.string().required('Room name is required'),
@@ -64,12 +71,52 @@ const AddRoom = ({navigation}) => {
     amenities: '',
   };
 
+  const [roomImages, setRoomImages] = useState([]);
+
+  const pickImages = () => {
+    ImagePicker.launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        selectionLimit: 5,
+      },
+      response => {
+        if (response.assets && response.assets.length > 0) {
+          setRoomImages(
+            prev => [...prev, ...response.assets].slice(0, 5), // store full asset, not just uri
+          );
+        }
+      },
+    );
+  };
+
+  const removeImage = index => {
+    setRoomImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleAddRoom = async (values, {resetForm}) => {
     setLoading(true);
     setError('');
 
     try {
-      // Convert string inputs to numbers
+      const imageDocumentIds = [];
+      for (const image of roomImages) {
+        const imagedetails = {
+          file_name: image.fileName || image.uri.split('/').pop(),
+          file_type: image.type || 'image/jpeg', // fallback
+          descriptor: 'Room Image',
+          is_signature_required: false,
+          doc_type: 'Room image',
+        };
+        const room_document_res = await createDocument(
+          credentials.accessToken,
+          credentials.property_id,
+          imagedetails,
+        );
+        await uploadDocument(room_document_res.data.upload_url, image);
+        imageDocumentIds.push(room_document_res.data.document_id);
+      }
+
       const roomData = {
         ...values,
         area: parseFloat(values.area),
@@ -82,6 +129,7 @@ const AddRoom = ({navigation}) => {
         bathroomCount: values.bathroomCount
           ? parseInt(values.bathroomCount)
           : null,
+        image_document_id_list: imageDocumentIds,
       };
 
       await createRoom(
@@ -299,6 +347,82 @@ const AddRoom = ({navigation}) => {
 
                 <Gap size="md" />
 
+                <Gap size="sm" />
+                <StandardText>Room Images (up to 5)</StandardText>
+                {console.log('Room Images:', roomImages)}
+                <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                  {roomImages.map((img, idx) => (
+                    <View
+                      key={idx}
+                      style={{
+                        position: 'relative',
+                        marginRight: 8,
+                        marginBottom: 8,
+                      }}>
+                      <Image
+                        source={{uri: img.uri}}
+                        style={{width: 80, height: 80, borderRadius: 8}}
+                      />
+                      <Button
+                        icon="close"
+                        compact
+                        style={{
+                          position: 'absolute',
+                          top: -10,
+                          right: -10,
+                          zIndex: 1,
+                        }}
+                        onPress={() => removeImage(idx)}
+                      />
+                    </View>
+                  ))}
+                </View>
+                <Button
+                  icon="image"
+                  mode="outlined"
+                  onPress={pickImages}
+                  style={{marginBottom: 10}}>
+                  {roomImages.length > 0 ? 'Change Images' : 'Upload Images'}
+                </Button>
+
+                <Button
+                  mode="contained"
+                  icon="content-save"
+                  onPress={async () => {
+                    const imageUploadPromises = roomImages.map(async image => {
+                      const imagedetails = {
+                        file_name: image.fileName || image.uri.split('/').pop(),
+                        file_type: image.type || 'image/jpeg',
+                        descriptor: 'Room Image',
+                        is_signature_required: false,
+                        doc_type: 'Room image',
+                      };
+                      const room_document_res = await createDocument(
+                        credentials.accessToken,
+                        credentials.property_id,
+                        imagedetails,
+                      );
+                      console.log('Document created:', room_document_res.data);
+                      try {
+                        console.log(
+                          'Uploading image to:',
+                          room_document_res.data.upload_url,
+                        );
+                        await uploadDocument(
+                          room_document_res.data.upload_url,
+                          image,
+                        );
+                      } catch (error) {
+                        console.error('Error uploading image:', error.message);
+                      }
+                    });
+
+                    await Promise.all(imageUploadPromises);
+                  }}
+                  style={{marginTop: 10}}>
+                  Add
+                </Button>
+
                 <Button
                   mode="contained"
                   onPress={handleSubmit}
@@ -364,6 +488,29 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#D32F2F',
     marginBottom: 16,
+  },
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  imageWrapper: {
+    position: 'relative',
+    width: '48%',
+    marginBottom: 10,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    padding: 2,
+    borderRadius: 20,
   },
 });
 

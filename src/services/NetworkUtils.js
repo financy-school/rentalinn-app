@@ -76,10 +76,10 @@ export const propertyRooms = (accessToken, propertyId) => {
   return rooms_res;
 };
 
-export const createRoom = (accessToken, propertyId, roomData) => {
+export const createRoom = async (accessToken, propertyId, roomData) => {
   const url = `${FINANCY_ENDPOINT_URL}/properties/${propertyId}/rooms`;
 
-  const create_room_res = axios.post(url, roomData, {
+  const create_room_res = await axios.post(url, roomData, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -186,4 +186,105 @@ export const updateTicket = (accessToken, ticketId, ticketData) => {
   });
 
   return update_ticket_res;
+};
+
+export const createDocument = (accessToken, property_id, documentData) => {
+  const url = `${FINANCY_ENDPOINT_URL}/documents`;
+
+  const create_document_res = axios.post(url, documentData, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': property_id,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return create_document_res;
+};
+
+export const updateDocument = (
+  accessToken,
+  property_id,
+  documentId,
+  documentData,
+) => {
+  const url = `${FINANCY_ENDPOINT_URL}/documents/${documentId}`;
+
+  const update_document_res = axios.put(url, documentData, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': property_id,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return update_document_res;
+};
+
+export const deleteDocument = (accessToken, property_id, documentId) => {
+  const url = `${FINANCY_ENDPOINT_URL}/documents/${documentId}`;
+
+  const delete_document_res = axios.delete(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': property_id,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return delete_document_res;
+};
+
+export const fetchDocuments = (accessToken, property_id, propertyId) => {
+  const url = `${FINANCY_ENDPOINT_URL}/documents`;
+
+  const documents_res = axios.get(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': property_id,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      propertyId: propertyId.toString(),
+    },
+  });
+
+  return documents_res;
+};
+
+export const uploadDocument = async (upload_url, file) => {
+  console.log('Uploading document:', file);
+
+  // Fetch the file as a blob
+  const response = await fetch(file.uri);
+  const blob = await response.blob();
+
+  // Upload to S3 using fetch
+  const uploadResponse = await fetch(upload_url, {
+    method: 'PUT',
+    body: blob,
+    headers: {
+      'Content-Type': file.type || 'image/jpeg',
+    },
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error('Failed to upload image to S3');
+  }
+
+  return uploadResponse;
+};
+
+export const getDocument = (accessToken, propertyId, documentId) => {
+  const url = `${FINANCY_ENDPOINT_URL}/documents/${documentId}`;
+
+  const document_res = axios.get(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': propertyId,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return document_res;
 };
