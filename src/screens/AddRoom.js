@@ -25,6 +25,7 @@ import * as ImagePicker from 'react-native-image-picker';
 import {Picker} from '@react-native-picker/picker';
 import {TouchableOpacity} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {ThemeContext} from '../context/ThemeContext';
 
 const AddRoomSchema = Yup.object().shape({
   roomName: Yup.string().required('Room name is required'),
@@ -65,7 +66,7 @@ const AddRoomSchema = Yup.object().shape({
 
 const AddRoom = ({navigation}) => {
   const {credentials} = useContext(CredentialsContext);
-  const theme = useTheme();
+  const {theme: mode} = useContext(ThemeContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -145,7 +146,7 @@ const AddRoom = ({navigation}) => {
       for (const image of roomImages) {
         const imagedetails = {
           file_name: image.fileName || image.uri.split('/').pop(),
-          file_type: image.type || 'image/jpeg', // fallback
+          file_type: image.type,
           descriptor: 'Room Image',
           is_signature_required: false,
           doc_type: 'Room image',
@@ -233,21 +234,31 @@ const AddRoom = ({navigation}) => {
                   <HelperText type="error">{errors.roomName}</HelperText>
                 )}
 
-                <Text style={{marginBottom: 4}}>Area Type *</Text>
-                <View
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#ccc',
-                    borderRadius: 4,
-                    marginBottom: 12,
-                  }}>
+                <Text style={styles.areaTypeLabel}>Area Type *</Text>
+                <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={values.areaType}
                     onValueChange={value => setFieldValue('areaType', value)}
-                    style={{height: 50, width: '100%'}}>
-                    <Picker.Item label="Select Area Type" value="" />
-                    <Picker.Item label="BHK" value="BHK" />
-                    <Picker.Item label="RK" value="RK" />
+                    style={[
+                      styles.picker,
+                      {color: mode === 'dark' ? '#e0e0e0' : '#000'},
+                    ]}
+                    dropdownIconColor={mode === 'dark' ? '#e0e0e0' : '#000'}>
+                    <Picker.Item
+                      label="Select Area Type"
+                      value=""
+                      color={mode === 'dark' ? '#b0b0b0' : '#888'}
+                    />
+                    <Picker.Item
+                      label="BHK"
+                      value="BHK"
+                      color={mode === 'dark' ? '#e0e0e0' : '#000'}
+                    />
+                    <Picker.Item
+                      label="RK"
+                      value="RK"
+                      color={mode === 'dark' ? '#e0e0e0' : '#000'}
+                    />
                   </Picker>
                 </View>
                 {touched.areaType && errors.areaType && (
@@ -391,21 +402,14 @@ const AddRoom = ({navigation}) => {
                     editable={false}
                   />
                   {/* Open calendar on touch */}
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                    }}>
+                  <View style={styles.absoluteFill}>
                     <TouchableOpacity
-                      style={{flex: 1}}
+                      style={styles.flexOne}
                       activeOpacity={1}
                       onPress={() =>
                         openDatePicker(values.lastElectricityReadingDate)
                       }>
-                      <View style={{flex: 1}} />
+                      <View style={styles.flexOne} />
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -428,28 +432,14 @@ const AddRoom = ({navigation}) => {
 
                 <Gap size="sm" />
                 <StandardText>Room Images (up to 5)</StandardText>
-                <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                <View style={styles.imagePreviewContainer}>
                   {roomImages.map((img, idx) => (
-                    <View
-                      key={idx}
-                      style={{
-                        position: 'relative',
-                        marginRight: 8,
-                        marginBottom: 8,
-                      }}>
-                      <Image
-                        source={{uri: img.uri}}
-                        style={{width: 80, height: 80, borderRadius: 8}}
-                      />
+                    <View key={idx} style={styles.roomImageWrapper}>
+                      <Image source={{uri: img.uri}} style={styles.roomImage} />
                       <Button
                         icon="close"
                         compact
-                        style={{
-                          position: 'absolute',
-                          top: -10,
-                          right: -10,
-                          zIndex: 1,
-                        }}
+                        style={styles.removeImageButton}
                         onPress={() => removeImage(idx)}
                       />
                     </View>
@@ -459,7 +449,7 @@ const AddRoom = ({navigation}) => {
                   icon="image"
                   mode="outlined"
                   onPress={pickImages}
-                  style={{marginBottom: 10}}>
+                  style={styles.uploadImageButton}>
                   {roomImages.length > 0 ? 'Change Images' : 'Upload Images'}
                 </Button>
 
@@ -533,24 +523,68 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  imageWrapper: {
-    position: 'relative',
-    width: '48%',
-    marginBottom: 10,
-  },
-  imagePreview: {
-    width: '100%',
-    height: 150,
-    borderRadius: 8,
+    imagePreviewContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    imageWrapper: {
+      position: 'relative',
+      width: '48%',
+      marginBottom: 10,
+    },
+    roomImageWrapper: {
+      position: 'relative',
+      marginRight: 8,
+      marginBottom: 8,
+    },
   },
   removeImageButton: {
     position: 'absolute',
     top: 5,
     right: 5,
     padding: 2,
-    borderRadius: 20,
+    removeImageButton: {
+      position: 'absolute',
+      top: -10,
+      right: -10,
+      zIndex: 1,
+      padding: 2,
+      borderRadius: 20,
+    },
+  },
+  absoluteFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  areaTypeLabel: {
+    marginBottom: 4,
+  },
+  flexOne: {
+    flex: 1,
+  },
+  uploadImageButton: {
+    marginBottom: 10,
+  },
+  roomImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
   },
 });
 

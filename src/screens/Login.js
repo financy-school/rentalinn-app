@@ -1,13 +1,6 @@
 import React, {useState, useContext} from 'react';
 import {StatusBar, Dimensions, View, TouchableOpacity} from 'react-native';
-import {
-  Text,
-  Button,
-  TextInput,
-  Snackbar,
-  Card,
-  useTheme,
-} from 'react-native-paper';
+import {Button, TextInput, Snackbar, Card} from 'react-native-paper';
 import {CredentialsContext} from '../context/CredentialsContext';
 import {ThemeContext} from '../context/ThemeContext'; // ⬅️ make sure this exists
 import {handleUserLogin} from '../services/NetworkUtils';
@@ -15,6 +8,7 @@ import KeyBoardAvoidingWrapper from '../components/KeyBoardAvoidingWrapper';
 import colors from '../theme/color';
 import {Image} from 'react-native';
 import StandardText from '../components/StandardText/StandardText';
+import {StyleSheet} from 'react-native';
 
 const Login = ({navigation}) => {
   const [hidePassword, setHidePassword] = useState(true);
@@ -24,9 +18,7 @@ const Login = ({navigation}) => {
   const [errorMessage, setErrorMessage] = useState('');
   const {setCredentials} = useContext(CredentialsContext);
 
-  // theme contexts
-  const {theme} = useTheme(); // your colors object
-  const {theme: mode} = useContext(ThemeContext); // "light" | "dark"
+  const {theme: mode} = useContext(ThemeContext);
 
   const isDark = mode === 'dark';
 
@@ -71,21 +63,17 @@ const Login = ({navigation}) => {
           backgroundColor={backgroundColor}
         />
 
-        {/* Header Section */}
         <View
-          style={{
-            backgroundColor: primary,
-            height: Dimensions.get('window').height * 0.4,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
+          style={[
+            styles.headerSection,
+            {
+              backgroundColor: primary,
+              height: Dimensions.get('window').height * 0.4,
+            },
+          ]}>
           <Image
             source={require('../assets/splash.png')}
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 55,
-            }}
+            style={styles.logoImage}
             resizeMode="contain"
           />
           <StandardText
@@ -124,7 +112,7 @@ const Login = ({navigation}) => {
                   thin: 'Metropolis-Thin',
                 },
               }}
-              style={{fontFamily: 'Metropolis-Medium'}}
+              style={styles.passwordInput}
             />
 
             <TextInput
@@ -155,28 +143,22 @@ const Login = ({navigation}) => {
                   thin: 'Metropolis-Thin',
                 },
               }}
-              style={{marginTop: 15, fontFamily: 'Metropolis-Medium'}}
+              style={styles.passwordInput}
             />
 
             <Button
               mode="contained"
               onPress={handleLogin}
               loading={loading}
-              style={{marginTop: 20}}
+              style={styles.button}
               buttonColor={primary}
-              labelStyle={{fontFamily: 'Metropolis-Bold', fontSize: 16}}
+              labelStyle={styles.buttonLabel}
               textColor={onPrimary}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
             <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-              <StandardText
-                style={{
-                  color: primary,
-                  marginTop: 20,
-                  textAlign: 'center',
-                  textDecorationLine: 'underline',
-                }}>
+              <StandardText style={[styles.signUpText, {color: primary}]}>
                 Don't have an account? Sign Up
               </StandardText>
             </TouchableOpacity>
@@ -197,5 +179,33 @@ const Login = ({navigation}) => {
     </KeyBoardAvoidingWrapper>
   );
 };
+
+const styles = StyleSheet.create({
+  signUpText: {
+    marginTop: 20,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  button: {
+    marginTop: 20,
+  },
+  buttonLabel: {
+    fontFamily: 'Metropolis-Bold',
+    fontSize: 16,
+  },
+  passwordInput: {
+    marginTop: 15,
+    fontFamily: 'Metropolis-Medium',
+  },
+  headerSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 55,
+  },
+});
 
 export default Login;

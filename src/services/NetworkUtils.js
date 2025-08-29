@@ -288,3 +288,17 @@ export const getDocument = (accessToken, propertyId, documentId) => {
 
   return document_res;
 };
+
+export const getTenants = (accessToken, propertyId, roomId) => {
+  const url = `${FINANCY_ENDPOINT_URL}/tenants/property/${propertyId}/room/${roomId}`;
+
+  const tenants_res = axios.get(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-property-id': propertyId,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return tenants_res;
+};

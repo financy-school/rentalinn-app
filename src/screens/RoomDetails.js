@@ -31,20 +31,20 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import colors from '../theme/color';
-import {getDocument} from '../services/NetworkUtils'; // adjust path if needed
+import {getDocument, getTenants} from '../services/NetworkUtils'; // adjust path if needed
 import {CredentialsContext} from '../context/CredentialsContext';
 
 const RoomDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
-  const theme = useTheme();
+
   const {room} = route.params;
-  console.log('Room Details:', room);
 
   const scrollX = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get('window').width;
 
   const [imageUrls, setImageUrls] = useState([]);
+  const [tenants, setTenants] = useState([]);
 
   useEffect(() => {
     const fetchImageUrls = async () => {
@@ -52,7 +52,6 @@ const RoomDetails = ({navigation, route}) => {
         room.image_document_id_list &&
         room.image_document_id_list.length > 0
       ) {
-        console.log('Fetching image URLs...');
         const urls = await Promise.all(
           room.image_document_id_list.map(async docId => {
             try {
@@ -61,30 +60,37 @@ const RoomDetails = ({navigation, route}) => {
                 credentials.property_id,
                 docId,
               );
-              console.log('Document fetched successfully:', res.data);
-              return res.data.download_url; // adjust if your API returns differently
+
+              return res.data.download_url;
             } catch (e) {
               console.error('Error fetching document for ID', docId, e);
               return null;
             }
           }),
         );
-        console.log('Fetched image URLs:', urls);
+
         setImageUrls(urls.filter(Boolean));
       }
     };
+    const fetchTenants = async () => {
+      const res = await getTenants(
+        credentials.accessToken,
+        credentials.property_id,
+        room.id,
+      );
+      setTenants(res.data);
+    };
     fetchImageUrls();
-  }, [room.image_document_id_list]);
+    fetchTenants();
+  }, [
+    room.image_document_id_list,
+    credentials.accessToken,
+    credentials.property_id,
+    room.id,
+  ]);
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
-
-  const dummyBeds = [
-    {id: '1', name: 'Bed A1', status: 'occupied', type: '1'},
-    {id: '2', name: 'Bed A2', status: 'vacant', type: '1'},
-    {id: '3', name: 'Bed B1', status: 'vacant', type: '2'},
-    {id: '4', name: 'Bed C1', status: 'occupied', type: '3'},
-  ];
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
@@ -153,20 +159,18 @@ const RoomDetails = ({navigation, route}) => {
             position: 'absolute',
             top: 20,
             right: 20,
-            backgroundColor: 'transparent', // Changed from red
-            padding: 8, // Added padding for better touch target
-            borderRadius: 20, // Optional: makes it circular
+            backgroundColor: 'transparent',
+            padding: 8,
+            borderRadius: 20,
           }}>
           <MaterialCommunityIcons
             name="dots-vertical"
             size={24}
             color="white"
           />
-          {/* Changed to white for visibility */}
         </TouchableOpacity>
       </View>
 
-      {/* Room Info Bar */}
       <View
         style={{
           flexDirection: 'row',
@@ -202,7 +206,7 @@ const RoomDetails = ({navigation, route}) => {
               fontWeight: 'bold',
               fontSize: 12,
             }}>
-            {room.isAvailable ? 'Available' : 'Occupied'}
+            {room.available ? 'Available' : 'Occupied'}
           </Text>
         </View>
       </View>
@@ -232,8 +236,7 @@ const RoomDetails = ({navigation, route}) => {
                   style={{marginLeft: 6}}
                   fontWeight="bold"
                   size="md">
-                  Bed:{' '}
-                  <Text style={{color: '#F2994A'}}>{room.totalBeds || 4}</Text>
+                  Bed: <Text style={{color: '#F2994A'}}>{room.bedCount}</Text>
                 </StandardText>
               </View>
 
@@ -242,7 +245,17 @@ const RoomDetails = ({navigation, route}) => {
                 style={{marginLeft: 28, color: 'gray', marginTop: 4}}
                 size="sm">
                 Available:{' '}
-                <MaterialCommunityIcons name="bed" size={18} color="#F2C94C" />
+                {room.bedCount > 0 &&
+                  Array.from({length: room.bedCount - tenants.length}).map(
+                    (_, index) => (
+                      <MaterialCommunityIcons
+                        key={index}
+                        name="bed"
+                        size={18}
+                        color="#F2C94C"
+                      />
+                    ),
+                  )}
               </StandardText>
 
               {/* Occupied */}
@@ -250,8 +263,16 @@ const RoomDetails = ({navigation, route}) => {
                 style={{marginLeft: 28, color: 'gray', marginTop: 2}}
                 size="sm">
                 Occupied:{' '}
-                <MaterialCommunityIcons name="bed" size={18} color="#BDBDBD" />
-                <MaterialCommunityIcons name="bed" size={18} color="#BDBDBD" />
+                {!!tenants &&
+                  tenants.length > 0 &&
+                  tenants.map((tenant, index) => (
+                    <MaterialCommunityIcons
+                      key={index}
+                      name="bed"
+                      size={18}
+                      color="#BDBDBD"
+                    />
+                  ))}
               </StandardText>
 
               {/* Rent Due */}
@@ -268,7 +289,7 @@ const RoomDetails = ({navigation, route}) => {
                   size="md">
                   Rent Due:{' '}
                   <Text style={{color: '#F2994A'}}>
-                    {room.rentDueCount || 2}
+                    {room.rentDueCount || 0}
                   </Text>
                 </StandardText>
               </View>
@@ -314,7 +335,7 @@ const RoomDetails = ({navigation, route}) => {
                   size="md">
                   Active Ticket:{' '}
                   <Text style={{color: '#F2994A'}}>
-                    {room.activeTickets || 1}
+                    {room.activeTickets || 0}
                   </Text>
                 </StandardText>
               </View>
@@ -341,7 +362,7 @@ const RoomDetails = ({navigation, route}) => {
                   fontWeight="bold"
                   size="md">
                   Under Notice:{' '}
-                  <Text style={{color: '#F2994A'}}>{room.room || 1}</Text>
+                  <Text style={{color: '#F2994A'}}>{room.room || 0}</Text>
                 </StandardText>
               </View>
               <View style={{marginLeft: 28, marginTop: 6}}>
@@ -399,8 +420,8 @@ const RoomDetails = ({navigation, route}) => {
           List of Tenants
         </StandardText>
 
-        {dummyBeds.map(bed => (
-          <StandardCard key={bed.id} style={{marginTop: 10}}>
+        {tenants.map(tenant => (
+          <StandardCard key={tenant.id} style={{marginTop: 10}}>
             <TouchableOpacity onPress={() => {}}>
               {/* Row: Avatar + Info Section */}
               <View
@@ -441,12 +462,12 @@ const RoomDetails = ({navigation, route}) => {
                         paddingVertical: 4,
                       }}>
                       <StandardText fontWeight="bold" size="xl">
-                        Sumit Gupta
+                        {tenant.name}
                       </StandardText>
                     </View>
 
                     <Menu
-                      visible={menuVisible && anchorBedId === bed.id}
+                      visible={menuVisible && anchorBedId === tenant.id}
                       onDismiss={() => {
                         setMenuVisible(false);
                         setAnchorBedId(null);
@@ -455,7 +476,7 @@ const RoomDetails = ({navigation, route}) => {
                         <TouchableOpacity
                           onPress={() => {
                             setMenuVisible(true);
-                            setAnchorBedId(bed.id);
+                            setAnchorBedId(tenant.id);
                           }}
                           style={{paddingHorizontal: 8, paddingVertical: 4}}>
                           <MaterialCommunityIcons
@@ -482,7 +503,7 @@ const RoomDetails = ({navigation, route}) => {
                     <MaterialCommunityIcons name="bed" size={20} color="#333" />
                     <StandardText style={{marginLeft: 6}}>
                       Room:{' '}
-                      <Text style={{fontWeight: 'bold'}}>{room.type}</Text>
+                      <Text style={{fontWeight: 'bold'}}>{room.areaType}</Text>
                     </StandardText>
                   </View>
 
@@ -527,7 +548,9 @@ const RoomDetails = ({navigation, route}) => {
                     />
                     <StandardText style={{marginLeft: 6}}>
                       Joined:{' '}
-                      <Text style={{fontWeight: 'bold'}}>2025-01-23</Text>
+                      <Text style={{fontWeight: 'bold'}}>
+                        {tenant.check_in_date}
+                      </Text>
                     </StandardText>
                   </View>
                 </View>
