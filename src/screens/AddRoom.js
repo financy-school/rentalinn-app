@@ -21,34 +21,46 @@ import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import colors from '../theme/color';
 import StandardText from '../components/StandardText/StandardText';
-
 import * as ImagePicker from 'react-native-image-picker';
+import {Picker} from '@react-native-picker/picker';
+import {TouchableOpacity} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddRoomSchema = Yup.object().shape({
-  name: Yup.string().required('Room name is required'),
-  description: Yup.string(),
-  area: Yup.number()
-    .typeError('Area must be a number')
-    .positive('Area must be positive')
-    .required('Area is required'),
+  roomName: Yup.string().required('Room name is required'),
+  areaType: Yup.string().required('Area type is required'),
+  floorNumber: Yup.number()
+    .typeError('Floor number must be a number')
+    .integer('Floor number must be an integer')
+    .required('Floor number is required'),
   rentAmount: Yup.number()
     .typeError('Rent must be a number')
     .positive('Rent must be positive')
-    .required('Rent amount is required'),
-  securityDeposit: Yup.number()
-    .typeError('Security deposit must be a number')
-    .min(0, 'Security deposit cannot be negative'),
-  floorNumber: Yup.number()
-    .typeError('Floor number must be a number')
-    .integer('Floor number must be an integer'),
-  bedroomCount: Yup.number()
-    .typeError('Bedroom count must be a number')
-    .integer('Bedroom count must be an integer')
-    .min(0, 'Bedroom count cannot be negative'),
+    .required('Rent is required'),
+  securityAmount: Yup.number()
+    .typeError('Security amount must be a number')
+    .min(0, 'Security amount cannot be negative')
+    .required('Security amount is required'),
+  bedCount: Yup.number()
+    .typeError('Bed count must be a number')
+    .integer('Bed count must be an integer')
+    .min(0, 'Bed count cannot be negative')
+    .required('Bed count is required'),
   bathroomCount: Yup.number()
     .typeError('Bathroom count must be a number')
-    .min(0, 'Bathroom count cannot be negative'),
+    .integer('Bathroom count must be an integer')
+    .min(0, 'Bathroom count cannot be negative')
+    .required('Bathroom count is required'),
   amenities: Yup.string(),
+  furnished: Yup.boolean(),
+  available: Yup.boolean(),
+  lastElectricityReading: Yup.number()
+    .typeError('Last electricity reading must be a number')
+    .min(0, 'Reading cannot be negative')
+    .required('Last electricity reading is required'),
+  lastElectricityReadingDate: Yup.string().required(
+    'Last electricity reading date is required',
+  ),
 });
 
 const AddRoom = ({navigation}) => {
@@ -57,18 +69,48 @@ const AddRoom = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [datePicker, setDatePicker] = useState({
+    show: false,
+    value: new Date(),
+  });
+
+  // Helper to format date as YYYY-MM-DD
+  const formatDate = date => {
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+  };
+
+  // Open calendar for last electricity reading date
+  const openDatePicker = currentValue => {
+    setDatePicker({
+      show: true,
+      value: currentValue ? new Date(currentValue) : new Date(),
+    });
+  };
+
+  // Handle date picker change
+  const onDateChange = (event, selectedDate, setFieldValue) => {
+    if (event.type === 'set' && selectedDate) {
+      setFieldValue('lastElectricityReadingDate', formatDate(selectedDate));
+    }
+    setDatePicker(prev => ({...prev, show: false}));
+  };
+
   const initialValues = {
-    name: '',
-    description: '',
-    area: '',
-    rentAmount: '',
-    securityDeposit: '',
-    isAvailable: true,
+    roomName: '',
+    areaType: '',
     floorNumber: '',
-    bedroomCount: '',
+    rentAmount: '',
+    securityAmount: '',
+    bedCount: '',
     bathroomCount: '',
-    isFurnished: false,
     amenities: '',
+    furnished: false,
+    available: true,
+    lastElectricityReading: '',
+    lastElectricityReadingDate: '',
   };
 
   const [roomImages, setRoomImages] = useState([]);
@@ -119,16 +161,13 @@ const AddRoom = ({navigation}) => {
 
       const roomData = {
         ...values,
-        area: parseFloat(values.area),
+        roomName: values.roomName.trim(),
         rentAmount: parseFloat(values.rentAmount),
-        securityDeposit: parseFloat(values.securityDeposit || 0),
-        floorNumber: values.floorNumber ? parseInt(values.floorNumber) : null,
-        bedroomCount: values.bedroomCount
-          ? parseInt(values.bedroomCount)
-          : null,
-        bathroomCount: values.bathroomCount
-          ? parseInt(values.bathroomCount)
-          : null,
+        securityAmount: parseFloat(values.securityAmount, 10),
+        floorNumber: parseInt(values.floorNumber, 10),
+        bedCount: parseInt(values.bedCount, 10),
+        bathroomCount: parseInt(values.bathroomCount, 10),
+        lastElectricityReading: parseFloat(values.lastElectricityReading, 10),
         image_document_id_list: imageDocumentIds,
       };
 
@@ -182,136 +221,108 @@ const AddRoom = ({navigation}) => {
             }) => (
               <View>
                 <TextInput
-                  label="Room Name*"
-                  value={values.name}
-                  onChangeText={handleChange('name')}
-                  onBlur={handleBlur('name')}
-                  error={touched.name && errors.name}
+                  label="Room Name *"
+                  value={values.roomName}
+                  onChangeText={handleChange('roomName')}
+                  onBlur={handleBlur('roomName')}
+                  error={touched.roomName && errors.roomName}
                   style={styles.input}
                   mode="outlined"
                 />
-                {touched.name && errors.name && (
-                  <HelperText type="error">{errors.name}</HelperText>
+                {touched.roomName && errors.roomName && (
+                  <HelperText type="error">{errors.roomName}</HelperText>
+                )}
+
+                <Text style={{marginBottom: 4}}>Area Type *</Text>
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    borderRadius: 4,
+                    marginBottom: 12,
+                  }}>
+                  <Picker
+                    selectedValue={values.areaType}
+                    onValueChange={value => setFieldValue('areaType', value)}
+                    style={{height: 50, width: '100%'}}>
+                    <Picker.Item label="Select Area Type" value="" />
+                    <Picker.Item label="BHK" value="BHK" />
+                    <Picker.Item label="RK" value="RK" />
+                  </Picker>
+                </View>
+                {touched.areaType && errors.areaType && (
+                  <HelperText type="error">{errors.areaType}</HelperText>
                 )}
 
                 <TextInput
-                  label="Description"
-                  value={values.description}
-                  onChangeText={handleChange('description')}
-                  onBlur={handleBlur('description')}
-                  multiline
-                  numberOfLines={3}
+                  label="Floor Number *"
+                  value={values.floorNumber.toString()}
+                  onChangeText={handleChange('floorNumber')}
+                  onBlur={handleBlur('floorNumber')}
+                  error={touched.floorNumber && errors.floorNumber}
+                  keyboardType="numeric"
                   style={styles.input}
                   mode="outlined"
                 />
+                {touched.floorNumber && errors.floorNumber && (
+                  <HelperText type="error">{errors.floorNumber}</HelperText>
+                )}
 
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Area (sqft)*"
-                      value={values.area}
-                      onChangeText={handleChange('area')}
-                      onBlur={handleBlur('area')}
-                      error={touched.area && errors.area}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.area && errors.area && (
-                      <HelperText type="error">{errors.area}</HelperText>
-                    )}
-                  </View>
+                <TextInput
+                  label="Rent (INR) *"
+                  value={values.rentAmount.toString()}
+                  onChangeText={handleChange('rentAmount')}
+                  onBlur={handleBlur('rentAmount')}
+                  error={touched.rentAmount && errors.rentAmount}
+                  keyboardType="numeric"
+                  style={styles.input}
+                  mode="outlined"
+                />
+                {touched.rentAmount && errors.rentAmount && (
+                  <HelperText type="error">{errors.rentAmount}</HelperText>
+                )}
 
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Floor Number"
-                      value={values.floorNumber}
-                      onChangeText={handleChange('floorNumber')}
-                      onBlur={handleBlur('floorNumber')}
-                      error={touched.floorNumber && errors.floorNumber}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.floorNumber && errors.floorNumber && (
-                      <HelperText type="error">{errors.floorNumber}</HelperText>
-                    )}
-                  </View>
-                </View>
+                <TextInput
+                  label="Security Amount (INR) *"
+                  value={values.securityAmount.toString()}
+                  onChangeText={handleChange('securityAmount')}
+                  onBlur={handleBlur('securityAmount')}
+                  error={touched.securityAmount && errors.securityAmount}
+                  keyboardType="numeric"
+                  style={styles.input}
+                  mode="outlined"
+                />
+                {touched.securityAmount && errors.securityAmount && (
+                  <HelperText type="error">{errors.securityAmount}</HelperText>
+                )}
 
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Rent Amount ($)*"
-                      value={values.rentAmount}
-                      onChangeText={handleChange('rentAmount')}
-                      onBlur={handleBlur('rentAmount')}
-                      error={touched.rentAmount && errors.rentAmount}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.rentAmount && errors.rentAmount && (
-                      <HelperText type="error">{errors.rentAmount}</HelperText>
-                    )}
-                  </View>
+                <TextInput
+                  label="Bed Count *"
+                  value={values.bedCount.toString()}
+                  onChangeText={handleChange('bedCount')}
+                  onBlur={handleBlur('bedCount')}
+                  error={touched.bedCount && errors.bedCount}
+                  keyboardType="numeric"
+                  style={styles.input}
+                  mode="outlined"
+                />
+                {touched.bedCount && errors.bedCount && (
+                  <HelperText type="error">{errors.bedCount}</HelperText>
+                )}
 
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Security Deposit ($)"
-                      value={values.securityDeposit}
-                      onChangeText={handleChange('securityDeposit')}
-                      onBlur={handleBlur('securityDeposit')}
-                      error={touched.securityDeposit && errors.securityDeposit}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.securityDeposit && errors.securityDeposit && (
-                      <HelperText type="error">
-                        {errors.securityDeposit}
-                      </HelperText>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Bedroom Count"
-                      value={values.bedroomCount}
-                      onChangeText={handleChange('bedroomCount')}
-                      onBlur={handleBlur('bedroomCount')}
-                      error={touched.bedroomCount && errors.bedroomCount}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.bedroomCount && errors.bedroomCount && (
-                      <HelperText type="error">
-                        {errors.bedroomCount}
-                      </HelperText>
-                    )}
-                  </View>
-
-                  <View style={styles.halfInput}>
-                    <TextInput
-                      label="Bathroom Count"
-                      value={values.bathroomCount}
-                      onChangeText={handleChange('bathroomCount')}
-                      onBlur={handleBlur('bathroomCount')}
-                      error={touched.bathroomCount && errors.bathroomCount}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      mode="outlined"
-                    />
-                    {touched.bathroomCount && errors.bathroomCount && (
-                      <HelperText type="error">
-                        {errors.bathroomCount}
-                      </HelperText>
-                    )}
-                  </View>
-                </View>
+                <TextInput
+                  label="Bathroom Count *"
+                  value={values.bathroomCount.toString()}
+                  onChangeText={handleChange('bathroomCount')}
+                  onBlur={handleBlur('bathroomCount')}
+                  error={touched.bathroomCount && errors.bathroomCount}
+                  keyboardType="numeric"
+                  style={styles.input}
+                  mode="outlined"
+                />
+                {touched.bathroomCount && errors.bathroomCount && (
+                  <HelperText type="error">{errors.bathroomCount}</HelperText>
+                )}
 
                 <TextInput
                   label="Amenities"
@@ -325,31 +336,98 @@ const AddRoom = ({navigation}) => {
 
                 <View style={styles.checkboxContainer}>
                   <Checkbox
-                    status={values.isFurnished ? 'checked' : 'unchecked'}
+                    status={values.furnished ? 'checked' : 'unchecked'}
                     onPress={() =>
-                      setFieldValue('isFurnished', !values.isFurnished)
+                      setFieldValue('furnished', !values.furnished)
                     }
                     color={colors.primary}
                   />
-                  <Text style={styles.checkboxLabel}>Furnished Room</Text>
+                  <Text style={styles.checkboxLabel}>Furnished</Text>
                 </View>
 
                 <View style={styles.checkboxContainer}>
                   <Checkbox
-                    status={values.isAvailable ? 'checked' : 'unchecked'}
+                    status={values.available ? 'checked' : 'unchecked'}
                     onPress={() =>
-                      setFieldValue('isAvailable', !values.isAvailable)
+                      setFieldValue('available', !values.available)
                     }
                     color={colors.primary}
                   />
-                  <Text style={styles.checkboxLabel}>Available for Rent</Text>
+                  <Text style={styles.checkboxLabel}>Available</Text>
                 </View>
 
-                <Gap size="md" />
+                <TextInput
+                  label="Last Electricity Reading *"
+                  value={values.lastElectricityReading.toString()}
+                  onChangeText={handleChange('lastElectricityReading')}
+                  onBlur={handleBlur('lastElectricityReading')}
+                  error={
+                    touched.lastElectricityReading &&
+                    errors.lastElectricityReading
+                  }
+                  keyboardType="numeric"
+                  style={styles.input}
+                  mode="outlined"
+                />
+                {touched.lastElectricityReading &&
+                  errors.lastElectricityReading && (
+                    <HelperText type="error">
+                      {errors.lastElectricityReading}
+                    </HelperText>
+                  )}
+                <TouchableOpacity onPress={() => openDatePicker('addRentOn')}>
+                  <TextInput
+                    label="Last Electricity Reading Date * (YYYY-MM-DD)"
+                    value={values.lastElectricityReadingDate}
+                    onChangeText={handleChange('lastElectricityReadingDate')}
+                    onBlur={handleBlur('lastElectricityReadingDate')}
+                    error={
+                      touched.lastElectricityReadingDate &&
+                      errors.lastElectricityReadingDate
+                    }
+                    style={styles.input}
+                    mode="outlined"
+                    placeholder="e.g. 2025-08-29"
+                    editable={false}
+                  />
+                  {/* Open calendar on touch */}
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}>
+                    <TouchableOpacity
+                      style={{flex: 1}}
+                      activeOpacity={1}
+                      onPress={() =>
+                        openDatePicker(values.lastElectricityReadingDate)
+                      }>
+                      <View style={{flex: 1}} />
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+                {datePicker.show && (
+                  <DateTimePicker
+                    value={datePicker.value}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) =>
+                      onDateChange(event, selectedDate, setFieldValue)
+                    }
+                  />
+                )}
+                {touched.lastElectricityReadingDate &&
+                  errors.lastElectricityReadingDate && (
+                    <HelperText type="error">
+                      {errors.lastElectricityReadingDate}
+                    </HelperText>
+                  )}
 
                 <Gap size="sm" />
                 <StandardText>Room Images (up to 5)</StandardText>
-                {console.log('Room Images:', roomImages)}
                 <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
                   {roomImages.map((img, idx) => (
                     <View
@@ -383,44 +461,6 @@ const AddRoom = ({navigation}) => {
                   onPress={pickImages}
                   style={{marginBottom: 10}}>
                   {roomImages.length > 0 ? 'Change Images' : 'Upload Images'}
-                </Button>
-
-                <Button
-                  mode="contained"
-                  icon="content-save"
-                  onPress={async () => {
-                    const imageUploadPromises = roomImages.map(async image => {
-                      const imagedetails = {
-                        file_name: image.fileName || image.uri.split('/').pop(),
-                        file_type: image.type || 'image/jpeg',
-                        descriptor: 'Room Image',
-                        is_signature_required: false,
-                        doc_type: 'Room image',
-                      };
-                      const room_document_res = await createDocument(
-                        credentials.accessToken,
-                        credentials.property_id,
-                        imagedetails,
-                      );
-                      console.log('Document created:', room_document_res.data);
-                      try {
-                        console.log(
-                          'Uploading image to:',
-                          room_document_res.data.upload_url,
-                        );
-                        await uploadDocument(
-                          room_document_res.data.upload_url,
-                          image,
-                        );
-                      } catch (error) {
-                        console.error('Error uploading image:', error.message);
-                      }
-                    });
-
-                    await Promise.all(imageUploadPromises);
-                  }}
-                  style={{marginTop: 10}}>
-                  Add
                 </Button>
 
                 <Button
