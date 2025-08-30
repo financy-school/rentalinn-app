@@ -17,7 +17,7 @@ import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
 import Share from 'react-native-share';
-import {getDocument, propertyRooms} from '../services/NetworkUtils';
+import {getDocument, propertyRooms, deleteRoom} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
@@ -313,6 +313,10 @@ const Rooms = ({navigation}) => {
                           onPress={() => {
                             setMenuVisible(false);
                             setAnchorBedId(null);
+                            navigation.navigate('AddRoom', {
+                              room,
+                              isEdit: true,
+                            });
                           }}
                           title="Edit"
                         />
@@ -332,9 +336,15 @@ const Rooms = ({navigation}) => {
                           title="Send Message"
                         />
                         <Menu.Item
-                          onPress={() => {
+                          onPress={async () => {
+                            await deleteRoom(
+                              credentials.accessToken,
+                              propertyId,
+                              room.id,
+                            );
                             setMenuVisible(false);
                             setAnchorBedId(null);
+                            fetchRooms();
                           }}
                           title="Delete"
                         />

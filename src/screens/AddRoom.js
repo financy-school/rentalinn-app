@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View, Image} from 'react-native';
 import {
   Button,
@@ -16,6 +16,7 @@ import {
   createRoom,
   uploadDocument,
   createDocument,
+  updateRoom,
 } from '../services/NetworkUtils';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
@@ -70,6 +71,20 @@ const AddRoom = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Get params from navigation
+  const route =
+    navigation && navigation.getState
+      ? navigation.getState().routes.find(r => r.name === 'AddRoom')
+      : null;
+  const params =
+    route && route.params
+      ? route.params
+      : navigation && navigation.params
+      ? navigation.params
+      : {};
+  const isEdit = params && params.isEdit;
+  const editRoom = params && params.room;
+
   const [datePicker, setDatePicker] = useState({
     show: false,
     value: new Date(),
@@ -100,21 +115,45 @@ const AddRoom = ({navigation}) => {
   };
 
   const initialValues = {
-    roomName: '',
-    areaType: '',
-    floorNumber: '',
-    rentAmount: '',
-    securityAmount: '',
-    bedCount: '',
-    bathroomCount: '',
-    amenities: '',
-    furnished: false,
-    available: true,
-    lastElectricityReading: '',
-    lastElectricityReadingDate: '',
+    roomName: isEdit && editRoom ? editRoom.name || '' : '',
+    areaType: isEdit && editRoom ? editRoom.areaType || '' : '',
+    floorNumber:
+      isEdit && editRoom ? editRoom.floorNumber?.toString() || '' : '',
+    rentAmount: isEdit && editRoom ? editRoom.rentAmount?.toString() || '' : '',
+    securityAmount:
+      isEdit && editRoom ? editRoom.securityAmount?.toString() || '' : '',
+    bedCount:
+      isEdit && editRoom
+        ? editRoom.totalBeds?.toString() || editRoom.bedCount?.toString() || ''
+        : '',
+    bathroomCount:
+      isEdit && editRoom ? editRoom.bathroomCount?.toString() || '' : '',
+    amenities: isEdit && editRoom ? editRoom.amenities || '' : '',
+    furnished: isEdit && editRoom ? !!editRoom.furnished : false,
+    available: isEdit && editRoom ? !!editRoom.isAvailable : true,
+    lastElectricityReading:
+      isEdit && editRoom
+        ? editRoom.lastElectricityReading?.toString() || ''
+        : '',
+    lastElectricityReadingDate:
+      isEdit && editRoom ? editRoom.lastElectricityReadingDate || '' : '',
   };
 
   const [roomImages, setRoomImages] = useState([]);
+
+  // Pre-fill images if editing
+  useEffect(() => {
+    if (
+      isEdit &&
+      editRoom &&
+      editRoom.image_document_id_list &&
+      Array.isArray(editRoom.image_document_id_list)
+    ) {
+      // You may want to fetch image URLs here if needed
+      // For now, just set empty array (or fetch URLs if you have API)
+      setRoomImages([]);
+    }
+  }, [isEdit, editRoom]);
 
   const pickImages = () => {
     ImagePicker.launchImageLibrary(
@@ -172,19 +211,32 @@ const AddRoom = ({navigation}) => {
         image_document_id_list: imageDocumentIds,
       };
 
-      await createRoom(
-        credentials.accessToken,
-        credentials.property_id,
-        roomData,
-      );
+      if (isEdit && editRoom) {
+        await updateRoom(
+          credentials.accessToken,
+          credentials.property_id,
+          editRoom.id,
+          roomData,
+        );
+      } else {
+        await createRoom(
+          credentials.accessToken,
+          credentials.property_id,
+          roomData,
+        );
+      }
 
       resetForm();
-      // Navigate back to rooms screen with a refresh flag
       navigation.navigate('Rooms', {refresh: true});
     } catch (err) {
-      console.error('Failed to add room:', err);
+      console.error(
+        isEdit ? 'Failed to update room:' : 'Failed to add room:',
+        err,
+      );
 
-      let errorMessage = 'Failed to add room. Please try again.';
+      let errorMessage = isEdit
+        ? 'Failed to update room. Please try again.'
+        : 'Failed to add room. Please try again.';
       if (err.response && err.response.data && err.response.data.message) {
         errorMessage =
           typeof err.response.data.message === 'string'
@@ -202,7 +254,9 @@ const AddRoom = ({navigation}) => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
         <StandardCard>
-          <Text style={styles.heading}>Add New Room</Text>
+          <Text style={styles.heading}>
+            {isEdit ? 'Edit Room' : 'Add New Room'}
+          </Text>
           <Divider style={styles.divider} />
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -459,7 +513,7 @@ const AddRoom = ({navigation}) => {
                   loading={loading}
                   disabled={loading}
                   style={styles.button}>
-                  Add Room
+                  {isEdit ? 'Update Room' : 'Add Room'}
                 </Button>
 
                 <Button
