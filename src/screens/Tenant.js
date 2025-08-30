@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import {Avatar, FAB, Text, useTheme} from 'react-native-paper';
+import {Avatar, FAB, Text} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
 
@@ -136,7 +136,7 @@ const Tenants = ({navigation}) => {
 
           {loading && (
             <View style={{padding: 20, alignItems: 'center'}}>
-              <Text>Loading tickets...</Text>
+              <Text>Loading tenants...</Text>
             </View>
           )}
 

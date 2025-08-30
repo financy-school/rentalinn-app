@@ -10,15 +10,12 @@ import {
 } from 'react-native';
 import {Appbar} from 'react-native-paper';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
-import Overview from '../Overview';
-import Operations from '../Operations';
-import Finance from '../Finance';
 
-const FirstRoute = () => <Overview />;
+const FirstRoute = () => <></>;
 
-const SecondRoute = () => <Operations />;
+const SecondRoute = () => <></>;
 
-const ThirdRoute = () => <Finance />;
+const ThirdRoute = () => <></>;
 
 const renderScene = SceneMap({
   first: FirstRoute,

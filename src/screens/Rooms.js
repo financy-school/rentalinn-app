@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import {Avatar, Button, Card, FAB, Text, useTheme} from 'react-native-paper';
+import {Button, FAB, Text} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
 import {ThemeContext} from '../context/ThemeContext';
@@ -30,29 +30,14 @@ const filterOptions = [
   {label: '3 Beds', key: '3', value: 20},
 ];
 
-const dummyBeds = [
-  {id: '1', name: 'Bed A1', status: 'occupied', type: '1'},
-  {id: '2', name: 'Bed A2', status: 'vacant', type: '1'},
-  {id: '3', name: 'Bed B1', status: 'vacant', type: '2'},
-  {id: '4', name: 'Bed C1', status: 'occupied', type: '3'},
-];
-
 const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
-
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const filteredBeds = dummyBeds.filter(bed => {
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'vacant') return bed.status === 'vacant';
-    return bed.type === selectedFilter;
-  });
-
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
 
