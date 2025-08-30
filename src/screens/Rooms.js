@@ -40,7 +40,6 @@ const dummyBeds = [
 const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
-  const theme = useTheme();
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -70,7 +69,7 @@ const Rooms = ({navigation}) => {
     try {
       setLoading(true);
       const response = await propertyRooms(accessToken, propertyId);
-      console.log('Rooms fetched:', response.data);
+
       const roomData = response.data.items || [];
       setRooms(roomData);
       setError(null);
@@ -125,7 +124,7 @@ const Rooms = ({navigation}) => {
         room.image_document_id_list.length > 0
       ) {
         const documentId = room.image_document_id_list[0];
-        console.log('Fetching image URL for document ID:', documentId);
+
         if (documentId) {
           try {
             // getDocument should be imported from your services
@@ -134,14 +133,13 @@ const Rooms = ({navigation}) => {
               propertyId,
               documentId,
             );
-            console.log('Fetched image URL:', result);
+
             imageUrl = result?.data?.download_url || null;
           } catch (err) {
             console.log('Error fetching image URL:', err);
           }
         }
       }
-      console.log('Sharing room with image URL:', imageUrl);
 
       const shareOptions = {
         title: 'Share Room',
@@ -149,9 +147,7 @@ const Rooms = ({navigation}) => {
         url: imageUrl || undefined,
       };
       await Share.open(shareOptions);
-    } catch (error) {
-      console.log('Share error:', error);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -249,7 +245,6 @@ const Rooms = ({navigation}) => {
           {!loading &&
             filteredRooms.map(room => (
               <StandardCard key={room.id} style={{marginTop: 10}}>
-                {console.log('Rendering room:', room)}
                 <TouchableOpacity
                   onPress={() => navigation.navigate('RoomDetails', {room})}>
                   {/* Header Row */}

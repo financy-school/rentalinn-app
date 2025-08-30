@@ -26,11 +26,13 @@ import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import StandardInformationAccordion from '../components/StandardInformationAccordion/StandardInformationAccordion';
 import colors from '../theme/color';
+import {putTenantOnNotice} from '../services/NetworkUtils';
+import {CredentialsContext} from '../context/CredentialsContext';
 const screenWidth = Dimensions.get('window').width;
 const TenantDetails = ({navigation, route}) => {
   const {theme: mode} = useContext(ThemeContext);
-  const theme = useTheme();
-  const {bed} = route.params;
+  const {credentials} = useContext(CredentialsContext);
+  const {tenant} = route.params;
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
@@ -51,10 +53,7 @@ const TenantDetails = ({navigation, route}) => {
         }}></View>
       <View style={{paddingHorizontal: 15, marginTop: -140}}>
         <StandardCard key={1} style={{marginTop: 40}}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('TenantDetails', {});
-            }}>
+          <TouchableOpacity onPress={() => {}}>
             <View
               style={{
                 flexDirection: 'row',
@@ -89,7 +88,7 @@ const TenantDetails = ({navigation, route}) => {
                       paddingVertical: 4,
                     }}>
                     <StandardText fontWeight="bold" size="xl">
-                      Sumit Gupta
+                      {tenant.name}
                     </StandardText>
                   </View>
 
@@ -115,7 +114,18 @@ const TenantDetails = ({navigation, route}) => {
                     }>
                     <Menu.Item onPress={() => {}} title="Edit" />
                     <Menu.Item onPress={() => {}} title="Share" />
-                    <Menu.Item onPress={() => {}} title="Put on Notice" />
+                    <Menu.Item
+                      onPress={async () => {
+                        await putTenantOnNotice(
+                          credentials.accessToken,
+                          tenant.id,
+                          {
+                            notice: true,
+                          },
+                        );
+                      }}
+                      title="Put on Notice"
+                    />
                     <Menu.Item onPress={() => {}} title="Delete" />
                   </Menu>
                 </View>
@@ -129,7 +139,8 @@ const TenantDetails = ({navigation, route}) => {
                   }}>
                   <MaterialCommunityIcons name="bed" size={20} color="#333" />
                   <StandardText style={{marginLeft: 6}}>
-                    Room: <Text style={{fontWeight: 'bold'}}>ROOM 1</Text>
+                    Room:{' '}
+                    <Text style={{fontWeight: 'bold'}}>{tenant.room.name}</Text>
                   </StandardText>
                 </View>
 
@@ -145,7 +156,10 @@ const TenantDetails = ({navigation, route}) => {
                     color="#333"
                   />
                   <StandardText style={{marginLeft: 6}}>
-                    Under Notice: <Text style={{fontWeight: 'bold'}}>Yes</Text>
+                    Under Notice:{' '}
+                    <Text style={{fontWeight: 'bold'}}>
+                      {tenant.is_on_notice ? 'Yes' : 'No'}
+                    </Text>
                   </StandardText>
                 </View>
 
@@ -157,7 +171,10 @@ const TenantDetails = ({navigation, route}) => {
                   }}>
                   <MaterialCommunityIcons name="cash" size={20} color="#333" />
                   <StandardText style={{marginLeft: 6}}>
-                    Rent Due: <Text style={{fontWeight: 'bold'}}>Yes</Text>
+                    Rent Due:{' '}
+                    <Text style={{fontWeight: 'bold'}}>
+                      {tenant.rent_amount ? tenant.rent_amount : 'No Dues'}
+                    </Text>
                   </StandardText>
                 </View>
 
@@ -168,7 +185,10 @@ const TenantDetails = ({navigation, route}) => {
                     color="#333"
                   />
                   <StandardText style={{marginLeft: 6}}>
-                    Joined: <Text style={{fontWeight: 'bold'}}>2025-01-23</Text>
+                    Joined:{' '}
+                    <Text style={{fontWeight: 'bold'}}>
+                      {tenant.check_in_date}
+                    </Text>
                   </StandardText>
                 </View>
               </View>

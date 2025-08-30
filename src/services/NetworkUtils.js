@@ -302,3 +302,17 @@ export const getTenants = (accessToken, propertyId, roomId) => {
 
   return tenants_res;
 };
+
+export const putTenantOnNotice = (accessToken, tenantId, noticeData) => {
+  const url = `${FINANCY_ENDPOINT_URL}/tenants/${tenantId}/notice`;
+
+  console.log('url:', url);
+  const put_notice_res = axios.patch(url, noticeData, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return put_notice_res;
+};

@@ -15,7 +15,7 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
-import {fetchTenants} from '../services/NetworkUtils';
+import {fetchTenants, putTenantOnNotice} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
@@ -141,7 +141,7 @@ const Tenants = ({navigation}) => {
             <StandardCard key={tenant.id} style={{marginTop: 10}}>
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('TenantDetails', {});
+                  navigation.navigate('TenantDetails', {tenant});
                 }}>
                 <View
                   style={{
@@ -204,7 +204,16 @@ const Tenants = ({navigation}) => {
                         }>
                         <Menu.Item onPress={() => {}} title="Edit" />
                         <Menu.Item onPress={() => {}} title="Share" />
-                        <Menu.Item onPress={() => {}} title="Put on Notice" />
+                        <Menu.Item
+                          onPress={() => {
+                            putTenantOnNotice(
+                              credentials.accessToken,
+                              tenant.id,
+                              {notice: true},
+                            );
+                          }}
+                          title="Put on Notice"
+                        />
                         <Menu.Item onPress={() => {}} title="Delete" />
                       </Menu>
                     </View>
@@ -243,7 +252,7 @@ const Tenants = ({navigation}) => {
                       <StandardText style={{marginLeft: 6}}>
                         Under Notice:{' '}
                         <Text style={{fontWeight: 'bold'}}>
-                          {tenant.underNotice ? 'Yes' : 'No'}
+                          {tenant.is_on_notice ? 'Yes' : 'No'}
                         </Text>
                       </StandardText>
                     </View>
