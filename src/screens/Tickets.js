@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  Image,
 } from 'react-native';
-import {Avatar, Button, FAB, Text} from 'react-native-paper';
+import {Button, FAB, Text} from 'react-native-paper';
 import {TextInput as PaperInput} from 'react-native-paper';
 import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
@@ -36,6 +37,9 @@ const Tickets = ({navigation}) => {
     {label: 'Active', key: 'ACTIVE', value: 0},
     {label: 'Closed', key: 'CLOSED', value: 0},
   ]);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
   /** --- Fetch tickets & images --- */
   const fetchData = useCallback(async () => {
@@ -161,6 +165,29 @@ const Tickets = ({navigation}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        {/* Image Modal */}
+        {modalVisible && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => {
+                  setModalVisible(false);
+                  setSelectedImageUrl(null);
+                }}>
+                <Text style={{fontSize: 18, color: '#fff'}}>Close</Text>
+              </TouchableOpacity>
+              {selectedImageUrl && (
+                <View style={styles.modalImageWrapper}>
+                  <Image
+                    source={{uri: selectedImageUrl}}
+                    style={styles.modalRectImage}
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+        )}
         <ScrollView contentContainerStyle={{padding: 16}}>
           {/* Search Bar */}
           <PaperInput
@@ -262,9 +289,18 @@ const Tickets = ({navigation}) => {
                   {ticketImages[ticket.id]?.length > 0 && (
                     <ScrollView horizontal style={{marginVertical: 8}}>
                       {ticketImages[ticket.id].map((imgUrl, idx) => (
-                        <View key={idx} style={{marginRight: 8}}>
-                          <Avatar.Image size={64} source={{uri: imgUrl}} />
-                        </View>
+                        <TouchableOpacity
+                          key={idx}
+                          style={{marginRight: 8}}
+                          onPress={() => {
+                            setSelectedImageUrl(imgUrl);
+                            setModalVisible(true);
+                          }}>
+                          <Image
+                            style={styles.rectImage}
+                            source={{uri: imgUrl}}
+                          />
+                        </TouchableOpacity>
                       ))}
                     </ScrollView>
                   )}
@@ -307,6 +343,20 @@ const Tickets = ({navigation}) => {
 
 /** --- Styles --- */
 const styles = StyleSheet.create({
+  modalRectImage: {
+    width: 300,
+    height: 300,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    resizeMode: 'cover',
+  },
+  rectImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    resizeMode: 'cover',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -372,6 +422,36 @@ const styles = StyleSheet.create({
     right: 30,
     borderRadius: 30,
     backgroundColor: colors.primary,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  modalContent: {
+    backgroundColor: 'transparent',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalImageWrapper: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignSelf: 'center',
   },
 });
 
