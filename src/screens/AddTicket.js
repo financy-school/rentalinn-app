@@ -1,5 +1,5 @@
 import React, {useState, useContext} from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
+import {View, StyleSheet, ScrollView, Image} from 'react-native';
 import {
   TextInput as PaperInput,
   Button,
@@ -7,8 +7,14 @@ import {
   Text,
 } from 'react-native-paper';
 import {CredentialsContext} from '../context/CredentialsContext';
-import {createTicket} from '../services/NetworkUtils';
+import {
+  createDocument,
+  createTicket,
+  uploadDocument,
+} from '../services/NetworkUtils';
 import StandardText from '../components/StandardText/StandardText';
+import Gap from '../components/Gap/Gap';
+import * as ImagePicker from 'react-native-image-picker';
 
 const AddTicket = ({navigation}) => {
   const theme = useTheme();
@@ -18,11 +24,11 @@ const AddTicket = ({navigation}) => {
     description: '',
     raisedBy: '',
     roomId: '',
-    userId: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [roomImages, setRoomImages] = useState([]);
 
   const handleChange = (key, value) => {
     setForm(prev => ({...prev, [key]: value}));
@@ -33,24 +39,63 @@ const AddTicket = ({navigation}) => {
     setError('');
     setSuccess('');
     try {
+      const imageDocumentIds = [];
+      for (const image of roomImages) {
+        const imagedetails = {
+          file_name: image.fileName || image.uri.split('/').pop(),
+          file_type: image.type,
+          descriptor: 'Room Image',
+          is_signature_required: false,
+          doc_type: 'Room image',
+        };
+        const room_document_res = await createDocument(
+          credentials.accessToken,
+          credentials.property_id,
+          imagedetails,
+        );
+
+        await uploadDocument(room_document_res.data.upload_url, image);
+        imageDocumentIds.push(room_document_res.data.document_id);
+      }
+
       const payload = {
         ...form,
         propertyId: credentials.property_id,
         status: 'PENDING',
-        userId: parseInt(form.userId, 10),
         roomId: parseInt(form.roomId, 10),
+        image_document_id_list: imageDocumentIds,
       };
       await createTicket(credentials.accessToken, payload);
       setSuccess('Ticket created successfully!');
       setForm({issue: '', description: '', raisedBy: '', roomId: ''});
-      // Optionally navigate back or to tickets list
-      // navigation.goBack();
+      navigation.goBack();
     } catch (err) {
       console.log(err);
       setError('Failed to create ticket.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const pickImages = () => {
+    ImagePicker.launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        selectionLimit: 5,
+      },
+      response => {
+        if (response.assets && response.assets.length > 0) {
+          setRoomImages(
+            prev => [...prev, ...response.assets].slice(0, 5), // store full asset, not just uri
+          );
+        }
+      },
+    );
+  };
+
+  const removeImage = index => {
+    setRoomImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -79,18 +124,35 @@ const AddTicket = ({navigation}) => {
       />
 
       <PaperInput
-        label="User ID"
-        value={form.userId}
-        onChangeText={text => handleChange('userId', text)}
-        style={styles.input}
-      />
-
-      <PaperInput
         label="Room ID"
         value={form.roomId}
         onChangeText={text => handleChange('roomId', text)}
         style={styles.input}
       />
+
+      <Gap size="sm" />
+      <StandardText>Room Images (up to 5)</StandardText>
+      <View style={styles.imagePreviewContainer}>
+        {roomImages.map((img, idx) => (
+          <View key={idx} style={styles.roomImageWrapper}>
+            <Image source={{uri: img.uri}} style={styles.roomImage} />
+            <Button
+              icon="close"
+              compact
+              style={styles.removeImageButton}
+              onPress={() => removeImage(idx)}
+            />
+          </View>
+        ))}
+      </View>
+      <Button
+        icon="image"
+        mode="outlined"
+        onPress={pickImages}
+        style={styles.uploadImageButton}>
+        {roomImages.length > 0 ? 'Change Images' : 'Upload Images'}
+      </Button>
+
       {error ? (
         <Text style={{color: 'red', marginBottom: 10}}>{error}</Text>
       ) : null}

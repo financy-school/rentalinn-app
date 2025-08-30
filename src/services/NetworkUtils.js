@@ -178,7 +178,7 @@ export const fetchTickets = (accessToken, propertyId) => {
 export const updateTicket = (accessToken, ticketId, ticketData) => {
   const url = `${FINANCY_ENDPOINT_URL}/tickets/${ticketId}`;
 
-  const update_ticket_res = axios.put(url, ticketData, {
+  const update_ticket_res = axios.patch(url, ticketData, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,

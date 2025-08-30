@@ -3,21 +3,17 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  TextInput,
-  FlatList,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import {Avatar, Button, Card, FAB, Text, useTheme} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {TextInput as PaperInput} from 'react-native-paper';
-
 import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
-import {Menu} from 'react-native-paper';
-import {fetchTickets} from '../services/NetworkUtils';
+import {fetchTickets, updateTicket} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
@@ -29,17 +25,15 @@ const filterOptions = [
 
 const Tickets = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
-  const theme = useTheme();
   const {credentials} = useContext(CredentialsContext);
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ticketImages, setTicketImages] = useState({}); // { ticketId: [urls] }
 
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [anchorBedId, setAnchorBedId] = useState(null);
-
+  const {getDocument} = require('../services/NetworkUtils');
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -48,14 +42,41 @@ const Tickets = ({navigation}) => {
         credentials.property_id,
       );
       console.log('Tickets fetched:', response.data);
-      setTickets(response.data.items || []);
+      const items = response.data.items || [];
+      setTickets(items);
+
+      // Fetch image URLs for tickets with image_document_id_list
+      const imagesMap = {};
+      for (const ticket of items) {
+        if (
+          ticket.image_document_id_list &&
+          Array.isArray(ticket.image_document_id_list)
+        ) {
+          imagesMap[ticket.id] = [];
+          for (const docId of ticket.image_document_id_list) {
+            try {
+              const docRes = await getDocument(
+                credentials.accessToken,
+                credentials.property_id,
+                docId,
+              );
+              if (docRes?.data?.download_url) {
+                imagesMap[ticket.id].push(docRes.data.download_url);
+              }
+            } catch (err) {
+              console.log('Error fetching ticket image:', err);
+            }
+          }
+        }
+      }
+      setTicketImages(imagesMap);
     } catch (error) {
       console.error('Error fetching tickets:', error);
       setTickets([]);
     } finally {
       setLoading(false);
     }
-  }, [credentials.accessToken, credentials.property_id]);
+  }, [credentials.accessToken, credentials.property_id, getDocument]);
 
   useEffect(() => {
     fetchData();
@@ -151,7 +172,7 @@ const Tickets = ({navigation}) => {
                 <View
                   style={{
                     backgroundColor:
-                      ticket.status === 'Active' ? '#f44336' : '#4caf50',
+                      ticket.status === 'PENDING' ? '#f44336' : '#4caf50',
                     borderRadius: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 2,
@@ -173,6 +194,18 @@ const Tickets = ({navigation}) => {
                 </StandardText>
               </View>
 
+              {/* Ticket Images */}
+              {ticketImages[ticket.id] &&
+                ticketImages[ticket.id].length > 0 && (
+                  <ScrollView horizontal style={{marginVertical: 8}}>
+                    {ticketImages[ticket.id].map((imgUrl, idx) => (
+                      <View key={idx} style={{marginRight: 8}}>
+                        <Avatar.Image size={64} source={{uri: imgUrl}} />
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
+
               <View
                 style={{
                   height: 1,
@@ -188,16 +221,24 @@ const Tickets = ({navigation}) => {
               </StandardText>
               <StandardText>{ticket.description}</StandardText>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  marginTop: 12,
-                }}>
-                <Button mode="outlined" onPress={() => {}}>
-                  <StandardText>CLOSE</StandardText>
-                </Button>
-              </View>
+              {ticket.status === 'PENDING' && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    marginTop: 12,
+                  }}>
+                  <Button
+                    mode="outlined"
+                    onPress={async () => {
+                      await updateTicket(credentials.accessToken, ticket.id, {
+                        status: 'CLOSED',
+                      });
+                    }}>
+                    <StandardText>CLOSE</StandardText>
+                  </Button>
+                </View>
+              )}
             </StandardCard>
           ))}
 
@@ -206,7 +247,6 @@ const Tickets = ({navigation}) => {
           <Gap size="lg" />
           <Gap size="lg" />
         </ScrollView>
-
         <FAB
           icon="plus"
           color="#fff"
