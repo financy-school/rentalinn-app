@@ -316,3 +316,16 @@ export const putTenantOnNotice = (accessToken, tenantId, noticeData) => {
 
   return put_notice_res;
 };
+
+export const deleteTenant = (accessToken, tenantId) => {
+  const url = `${FINANCY_ENDPOINT_URL}/tenants/${tenantId}`;
+
+  const delete_tenant_res = axios.delete(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return delete_tenant_res;
+};

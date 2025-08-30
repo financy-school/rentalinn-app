@@ -26,7 +26,7 @@ import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import StandardInformationAccordion from '../components/StandardInformationAccordion/StandardInformationAccordion';
 import colors from '../theme/color';
-import {putTenantOnNotice} from '../services/NetworkUtils';
+import {deleteTenant, putTenantOnNotice} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 const screenWidth = Dimensions.get('window').width;
 const TenantDetails = ({navigation, route}) => {
@@ -126,7 +126,13 @@ const TenantDetails = ({navigation, route}) => {
                       }}
                       title="Put on Notice"
                     />
-                    <Menu.Item onPress={() => {}} title="Delete" />
+                    <Menu.Item
+                      onPress={async () => {
+                        await deleteTenant(credentials.accessToken, tenant.id);
+                        navigation.goBack();
+                      }}
+                      title="Delete"
+                    />
                   </Menu>
                 </View>
 

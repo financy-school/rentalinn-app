@@ -15,7 +15,11 @@ import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import {Menu} from 'react-native-paper';
-import {fetchTenants, putTenantOnNotice} from '../services/NetworkUtils';
+import {
+  fetchTenants,
+  putTenantOnNotice,
+  deleteTenant,
+} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
@@ -29,7 +33,6 @@ const filterOptions = [
 const Tenants = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
-  const theme = useTheme();
 
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -214,7 +217,22 @@ const Tenants = ({navigation}) => {
                           }}
                           title="Put on Notice"
                         />
-                        <Menu.Item onPress={() => {}} title="Delete" />
+                        <Menu.Item
+                          onPress={async () => {
+                            await deleteTenant(
+                              credentials.accessToken,
+                              tenant.id,
+                            );
+
+                            const res = await fetchTenants(
+                              credentials.accessToken,
+                              credentials.property_id,
+                            );
+
+                            setTenants(res.data.items || []);
+                          }}
+                          title="Delete"
+                        />
                       </Menu>
                     </View>
 
