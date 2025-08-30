@@ -180,6 +180,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: '#f5f5f5',
   },
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  imageWrapper: {
+    position: 'relative',
+    width: '48%',
+    marginBottom: 10,
+  },
+  roomImageWrapper: {
+    position: 'relative',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    zIndex: 1,
+    padding: 2,
+    borderRadius: 20,
+  },
 });
 
 export default AddTicket;
