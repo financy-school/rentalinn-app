@@ -72,7 +72,7 @@ const Login = ({navigation}) => {
             },
           ]}>
           <Image
-            source={require('../assets/splash.png')}
+            source={require('../assets/rentalinn-without-bg.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />

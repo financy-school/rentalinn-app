@@ -18,7 +18,7 @@ const SplashScreen = () => {
         },
       ]}>
       <Image
-        source={require('../assets/splash.png')}
+        source={require('../assets/rentalinn-without-bg.png')}
         style={[styles.image, {width: width * 0.5, height: width * 0.5}]}
         resizeMode="contain"
       />
