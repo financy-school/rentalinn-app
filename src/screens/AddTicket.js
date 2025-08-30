@@ -86,9 +86,7 @@ const AddTicket = ({navigation}) => {
       },
       response => {
         if (response.assets && response.assets.length > 0) {
-          setRoomImages(
-            prev => [...prev, ...response.assets].slice(0, 5), // store full asset, not just uri
-          );
+          setRoomImages(response.assets.slice(0, 5));
         }
       },
     );
@@ -132,14 +130,27 @@ const AddTicket = ({navigation}) => {
 
       <Gap size="sm" />
       <StandardText>Room Images (up to 5)</StandardText>
-      <View style={styles.imagePreviewContainer}>
+      <View style={{flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10}}>
         {roomImages.map((img, idx) => (
-          <View key={idx} style={styles.roomImageWrapper}>
-            <Image source={{uri: img.uri}} style={styles.roomImage} />
+          <View
+            key={idx}
+            style={{position: 'relative', marginRight: 8, marginBottom: 8}}>
+            {img.uri ? (
+              <Image
+                source={{uri: img.uri}}
+                style={{width: 80, height: 80, borderRadius: 8}}
+              />
+            ) : null}
             <Button
               icon="close"
               compact
-              style={styles.removeImageButton}
+              style={{
+                position: 'absolute',
+                top: 5,
+                right: 5,
+                padding: 2,
+                borderRadius: 20,
+              }}
               onPress={() => removeImage(idx)}
             />
           </View>
