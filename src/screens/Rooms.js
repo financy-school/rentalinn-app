@@ -21,15 +21,6 @@ import {getDocument, propertyRooms, deleteRoom} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
-const filterOptions = [
-  {label: 'All', key: 'all', value: 30},
-  {label: 'Vacant Beds', key: 'vacant', value: 20},
-  {label: '4 Beds', key: '4', value: 20},
-  {label: '1 Bed', key: '1', value: 20},
-  {label: '2 Beds', key: '2', value: 20},
-  {label: '3 Beds', key: '3', value: 20},
-];
-
 const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
@@ -40,6 +31,14 @@ const Rooms = ({navigation}) => {
   const [error, setError] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
+  const [filterOptions, setFilterOptions] = useState([
+    {label: 'All', key: 'all', value: 0},
+    {label: 'Vacant Beds', key: 'vacant', value: 0},
+    {label: '1 Bed', key: '1', value: 0},
+    {label: '2 Beds', key: '2', value: 0},
+    {label: '3 Beds', key: '3', value: 0},
+    {label: '4 Beds', key: '4', value: 0},
+  ]);
 
   const accessToken = credentials.accessToken;
   const propertyId = credentials.property_id;
@@ -58,9 +57,34 @@ const Rooms = ({navigation}) => {
       const roomData = response.data.items || [];
       setRooms(roomData);
       setError(null);
+
+      // Calculate filter values from API data
+      const allCount = roomData.length;
+      const vacantCount = roomData.filter(r => r.status === 'VACANT').length;
+      const fourBedsCount = roomData.filter(r => r.bedCount === 4).length;
+      const oneBedCount = roomData.filter(r => r.bedCount === 1).length;
+      const twoBedsCount = roomData.filter(r => r.bedCount === 2).length;
+      const threeBedsCount = roomData.filter(r => r.bedCount === 3).length;
+
+      setFilterOptions([
+        {label: 'All', key: 'ALL', value: allCount},
+        {label: 'Vacant Beds', key: 'VACANT', value: vacantCount},
+        {label: '4 Beds', key: '4', value: fourBedsCount},
+        {label: '1 Bed', key: '1', value: oneBedCount},
+        {label: '2 Beds', key: '2', value: twoBedsCount},
+        {label: '3 Beds', key: '3', value: threeBedsCount},
+      ]);
     } catch (err) {
       console.error('Error fetching rooms:', err);
       setError('Failed to load rooms. Please try again later.');
+      setFilterOptions([
+        {label: 'All', key: 'ALL', value: 0},
+        {label: 'Vacant Beds', key: 'VACANT', value: 0},
+        {label: '4 Beds', key: '4', value: 0},
+        {label: '1 Bed', key: '1', value: 0},
+        {label: '2 Beds', key: '2', value: 0},
+        {label: '3 Beds', key: '3', value: 0},
+      ]);
     } finally {
       setLoading(false);
     }
@@ -80,15 +104,33 @@ const Rooms = ({navigation}) => {
 
   const filteredRooms = rooms
     .filter(room => {
-      if (!search) return true;
+      if (!search) {
+        return true;
+      }
 
       // Filter by search term
       const searchTerm = search.toLowerCase();
       return room.name.toLowerCase().includes(searchTerm);
     })
     .filter(room => {
-      if (selectedFilter === 'all') return true;
-      if (selectedFilter === 'vacant') return room.status === 'vacant';
+      if (selectedFilter === 'ALL') {
+        return true;
+      }
+      if (selectedFilter === 'VACANT') {
+        return room.status === 'VACANT';
+      }
+      if (selectedFilter === '1') {
+        return room.bedCount === 1;
+      }
+      if (selectedFilter === '2') {
+        return room.bedCount === 2;
+      }
+      if (selectedFilter === '3') {
+        return room.bedCount === 3;
+      }
+      if (selectedFilter === '4') {
+        return room.bedCount === 4;
+      }
       return room.type === selectedFilter;
     });
 

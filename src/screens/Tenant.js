@@ -23,13 +23,6 @@ import {
 import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
 
-const filterOptions = [
-  {label: 'All', key: 'all', value: 30},
-  {label: 'Dues', key: 'vacant', value: 20},
-  {label: 'No Dues', key: '4', value: 20},
-  {label: 'Notice', key: '1', value: 20},
-];
-
 const Tenants = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
@@ -41,6 +34,12 @@ const Tenants = ({navigation}) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
   const [tenants, setTenants] = useState([]);
+  const [filterOptions, setFilterOptions] = useState([
+    {label: 'All', key: 'all', value: 0},
+    {label: 'Dues', key: 'dues', value: 0},
+    {label: 'No Dues', key: 'no_dues', value: 0},
+    {label: 'Notice', key: 'notice', value: 0},
+  ]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -49,11 +48,29 @@ const Tenants = ({navigation}) => {
         credentials.accessToken,
         credentials.property_id,
       );
+      const tenantsList = res.data.items || [];
+      setTenants(tenantsList);
 
-      setTenants(res.data.items || []);
+      const allCount = tenantsList.length;
+      const duesCount = tenantsList.filter(t => t.has_dues).length;
+      const noDuesCount = tenantsList.filter(t => !t.has_dues).length;
+      const noticeCount = tenantsList.filter(t => t.is_on_notice).length;
+
+      setFilterOptions([
+        {label: 'All', key: 'all', value: allCount},
+        {label: 'Dues', key: 'dues', value: duesCount},
+        {label: 'No Dues', key: 'no_dues', value: noDuesCount},
+        {label: 'Notice', key: 'notice', value: noticeCount},
+      ]);
     } catch (error) {
       console.error('Error fetching tenants:', error);
       setTenants([]);
+      setFilterOptions([
+        {label: 'All', key: 'all', value: 0},
+        {label: 'Dues', key: 'dues', value: 0},
+        {label: 'No Dues', key: 'no_dues', value: 0},
+        {label: 'Notice', key: 'notice', value: 0},
+      ]);
     } finally {
       setLoading(false);
     }
