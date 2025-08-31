@@ -25,15 +25,15 @@ const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
   const [search, setSearch] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState('ALL');
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [anchorBedId, setAnchorBedId] = useState(null);
   const [filterOptions, setFilterOptions] = useState([
-    {label: 'All', key: 'all', value: 0},
-    {label: 'Vacant Beds', key: 'vacant', value: 0},
+    {label: 'All', key: 'ALL', value: 0},
+    {label: 'Vacant Beds', key: 'VACANT', value: 0},
     {label: '1 Bed', key: '1', value: 0},
     {label: '2 Beds', key: '2', value: 0},
     {label: '3 Beds', key: '3', value: 0},
