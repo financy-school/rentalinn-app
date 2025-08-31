@@ -63,206 +63,227 @@ const Tenants = ({navigation}) => {
     } catch (error) {
       console.error('Error fetching tenants:', error);
       setTenants([]);
-    } finally {
-      setLoading(false);
     }
-  }, [credentials.accessToken, credentials.property_id]);
+    setLoading(false);
+  }, [credentials]);
+
+  // Filter tenants based on selectedFilter and search
+  const filteredTenants = tenants.filter(tenant => {
+    // Search filter
+    const matchesSearch = tenant.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+    // Filter chips
+    if (selectedFilter === 'dues') {
+      return tenant.has_dues && matchesSearch;
+    } else if (selectedFilter === 'no_dues') {
+      return !tenant.has_dues && matchesSearch;
+    } else if (selectedFilter === 'notice') {
+      return tenant.is_on_notice && matchesSearch;
+    }
+    // 'all' filter
+    return matchesSearch;
+  });
 
   useEffect(() => {
     fetchData();
-    const unsubscribe = navigation.addListener('focus', fetchData);
-    return unsubscribe;
-  }, [navigation, fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter, search]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={{flex: 1}}>
-        <ScrollView contentContainerStyle={{padding: 16}}>
-          {/* Search */}
-          <PaperInput
-            mode="flat"
-            placeholder="Search Tenants..."
-            value={search}
-            onChangeText={setSearch}
-            style={styles.searchBar}
-            left={<PaperInput.Icon icon="magnify" />}
-            underlineColor="transparent"
-            activeUnderlineColor="transparent"
-            theme={{
-              roundness: 25,
-              colors: {background: '#fff', text: '#000', placeholder: '#888'},
-            }}
-          />
+        <View style={{flex: 1}}>
+          {/* Main content */}
+          <ScrollView contentContainerStyle={{padding: 16}}>
+            {/* Search */}
+            <PaperInput
+              mode="flat"
+              placeholder="Search Tenants..."
+              value={search}
+              onChangeText={setSearch}
+              style={styles.searchBar}
+              left={<PaperInput.Icon icon="magnify" />}
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              theme={{
+                roundness: 25,
+                colors: {background: '#fff', text: '#000', placeholder: '#888'},
+              }}
+            />
 
-          <Gap size="md" />
+            <Gap size="md" />
 
-          {/* Filters as Chips */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{marginBottom: 16}}>
-            {filterOptions.map(option => (
-              <Chip
-                key={option.key}
-                selected={selectedFilter === option.key}
-                onPress={() => setSelectedFilter(option.key)}
-                style={[
-                  styles.chip,
-                  selectedFilter === option.key && {
-                    backgroundColor: colors.primary,
-                  },
-                ]}
-                textStyle={{
-                  color: selectedFilter === option.key ? '#fff' : '#000',
-                }}>
-                {option.label} ({option.value})
-              </Chip>
-            ))}
-          </ScrollView>
+            {/* Filters as Chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{marginBottom: 16}}>
+              {filterOptions.map(option => (
+                <Chip
+                  key={option.key}
+                  selected={selectedFilter === option.key}
+                  onPress={() => setSelectedFilter(option.key)}
+                  style={[
+                    styles.chip,
+                    selectedFilter === option.key && {
+                      backgroundColor: colors.primary,
+                    },
+                  ]}
+                  textStyle={{
+                    color: selectedFilter === option.key ? '#fff' : '#000',
+                  }}>
+                  {option.label} ({option.value})
+                </Chip>
+              ))}
+            </ScrollView>
 
-          {/* Loader */}
-          {loading && (
-            <View style={{padding: 20, alignItems: 'center'}}>
-              <StandardText>Loading tenants...</StandardText>
-            </View>
-          )}
+            {/* Loader */}
+            {loading && (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <StandardText>Loading tenants...</StandardText>
+              </View>
+            )}
 
-          {/* Tenant Cards */}
-          {tenants.map(tenant => (
-            <StandardCard key={tenant.id} style={styles.card}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('TenantDetails', {tenant})}>
-                <View style={styles.row}>
-                  {/* Avatar */}
-                  <Avatar.Image
-                    size={60}
-                    source={{
-                      uri: 'https://avatar.iran.liara.run/public/37',
-                    }}
-                    style={{marginRight: 14}}
-                  />
+            {/* Tenant Cards */}
+            {filteredTenants.map(tenant => (
+              <StandardCard key={tenant.id} style={styles.card}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('TenantDetails', {tenant})
+                  }>
+                  <View style={styles.row}>
+                    {/* Avatar */}
+                    <Avatar.Image
+                      size={60}
+                      source={{
+                        uri: 'https://avatar.iran.liara.run/public/37',
+                      }}
+                      style={{marginRight: 14}}
+                    />
 
-                  {/* Info Section */}
-                  <View style={{flex: 1}}>
-                    <View style={styles.rowBetween}>
-                      <StandardText fontWeight="bold" size="lg">
-                        {tenant.name}
-                      </StandardText>
+                    {/* Info Section */}
+                    <View style={{flex: 1}}>
+                      <View style={styles.rowBetween}>
+                        <StandardText fontWeight="bold" size="lg">
+                          {tenant.name}
+                        </StandardText>
 
-                      {/* Menu */}
-                      <Menu
-                        visible={menuVisible && anchorBedId === tenant.id}
-                        onDismiss={() => {
-                          setMenuVisible(false);
-                          setAnchorBedId(null);
-                        }}
-                        anchor={
-                          <TouchableOpacity
+                        {/* Menu */}
+                        <Menu
+                          visible={menuVisible && anchorBedId === tenant.id}
+                          onDismiss={() => {
+                            setMenuVisible(false);
+                            setAnchorBedId(null);
+                          }}
+                          anchor={
+                            <TouchableOpacity
+                              onPress={() => {
+                                setMenuVisible(true);
+                                setAnchorBedId(tenant.id);
+                              }}>
+                              <MaterialCommunityIcons
+                                name="dots-vertical"
+                                size={22}
+                                color="#444"
+                              />
+                            </TouchableOpacity>
+                          }>
+                          <Menu.Item onPress={() => {}} title="Edit" />
+                          <Menu.Item onPress={() => {}} title="Share" />
+                          <Menu.Item
                             onPress={() => {
-                              setMenuVisible(true);
-                              setAnchorBedId(tenant.id);
-                            }}>
-                            <MaterialCommunityIcons
-                              name="dots-vertical"
-                              size={22}
-                              color="#444"
-                            />
-                          </TouchableOpacity>
-                        }>
-                        <Menu.Item onPress={() => {}} title="Edit" />
-                        <Menu.Item onPress={() => {}} title="Share" />
-                        <Menu.Item
-                          onPress={() => {
-                            putTenantOnNotice(
-                              credentials.accessToken,
-                              tenant.id,
-                              {notice: true},
-                            );
-                          }}
-                          title="Put on Notice"
-                        />
-                        <Menu.Item
-                          onPress={async () => {
-                            await deleteTenant(
-                              credentials.accessToken,
-                              tenant.id,
-                            );
-                            fetchData();
-                          }}
-                          title="Delete"
-                        />
-                      </Menu>
-                    </View>
-
-                    {/* Quick badges */}
-                    <View style={{flexDirection: 'row', marginTop: 6}}>
-                      {tenant.has_dues && (
-                        <Chip
-                          style={styles.badgeDues}
-                          textStyle={{color: '#fff'}}>
-                          Dues
-                        </Chip>
-                      )}
-                      {tenant.is_on_notice && (
-                        <Chip
-                          style={styles.badgeNotice}
-                          textStyle={{color: '#fff'}}>
-                          Notice
-                        </Chip>
-                      )}
-                    </View>
-
-                    {/* Small details */}
-                    <View style={{marginTop: 8}}>
-                      <View style={styles.detailRow}>
-                        <MaterialCommunityIcons
-                          name="bed"
-                          size={18}
-                          color="#555"
-                        />
-                        <StandardText style={styles.detailText}>
-                          {tenant.room.name}
-                        </StandardText>
+                              putTenantOnNotice(
+                                credentials.accessToken,
+                                tenant.id,
+                                {notice: true},
+                              );
+                            }}
+                            title="Put on Notice"
+                          />
+                          <Menu.Item
+                            onPress={async () => {
+                              await deleteTenant(
+                                credentials.accessToken,
+                                tenant.id,
+                              );
+                              fetchData();
+                            }}
+                            title="Delete"
+                          />
+                        </Menu>
                       </View>
 
-                      <View style={styles.detailRow}>
-                        <MaterialCommunityIcons
-                          name="cash"
-                          size={18}
-                          color="#555"
-                        />
-                        <StandardText style={styles.detailText}>
-                          ₹{tenant.room.rentAmount}
-                        </StandardText>
+                      {/* Quick badges */}
+                      <View style={{flexDirection: 'row', marginTop: 6}}>
+                        {tenant.has_dues && (
+                          <Chip
+                            style={styles.badgeDues}
+                            textStyle={{color: '#fff'}}>
+                            Dues
+                          </Chip>
+                        )}
+                        {tenant.is_on_notice && (
+                          <Chip
+                            style={styles.badgeNotice}
+                            textStyle={{color: '#fff'}}>
+                            Notice
+                          </Chip>
+                        )}
                       </View>
 
-                      <View style={styles.detailRow}>
-                        <MaterialCommunityIcons
-                          name="calendar-check"
-                          size={18}
-                          color="#555"
-                        />
-                        <StandardText style={styles.detailText}>
-                          Joined: {tenant.check_in_date}
-                        </StandardText>
+                      {/* Small details */}
+                      <View style={{marginTop: 8}}>
+                        <View style={styles.detailRow}>
+                          <MaterialCommunityIcons
+                            name="bed"
+                            size={18}
+                            color="#555"
+                          />
+                          <StandardText style={styles.detailText}>
+                            {tenant.room.name}
+                          </StandardText>
+                        </View>
+
+                        <View style={styles.detailRow}>
+                          <MaterialCommunityIcons
+                            name="cash"
+                            size={18}
+                            color="#555"
+                          />
+                          <StandardText style={styles.detailText}>
+                            ₹{tenant.room.rentAmount}
+                          </StandardText>
+                        </View>
+
+                        <View style={styles.detailRow}>
+                          <MaterialCommunityIcons
+                            name="calendar-check"
+                            size={18}
+                            color="#555"
+                          />
+                          <StandardText style={styles.detailText}>
+                            Joined: {tenant.check_in_date}
+                          </StandardText>
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            </StandardCard>
-          ))}
+                </TouchableOpacity>
+              </StandardCard>
+            ))}
 
-          <Gap size="xl" />
-        </ScrollView>
+            <Gap size="xl" />
+          </ScrollView>
 
-        {/* Floating Add Button */}
-        <FAB
-          icon="plus"
-          color="#fff"
-          style={styles.fab}
-          onPress={() => navigation.navigate('AddTenant')}
-        />
+          {/* Floating Add Button */}
+          <FAB
+            icon="plus"
+            color="#fff"
+            style={styles.fab}
+            onPress={() => navigation.navigate('AddTenant')}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
