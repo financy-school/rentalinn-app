@@ -70,7 +70,6 @@ const AddTicket = ({navigation}) => {
       setForm({issue: '', description: '', raisedBy: '', roomId: ''});
       navigation.goBack();
     } catch (err) {
-      console.log(err);
       setError('Failed to create ticket.');
     } finally {
       setLoading(false);

@@ -78,7 +78,6 @@ const StandardAccordion = ({heading, icon, content}) => {
         formattedStartDate,
         formattedEndDate,
       );
-      console.log('Analytics response:', response);
 
       // Update state with the analytics data
       setAnalyticsData(response.data);
@@ -267,7 +266,6 @@ const StandardAccordion = ({heading, icon, content}) => {
                 onPress={() => {
                   setCalendarVisible(false);
                   // Handle the selected range here
-                  console.log('Selected Range:', selectedRange);
                 }}>
                 Done
               </Button>

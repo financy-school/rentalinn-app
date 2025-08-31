@@ -45,7 +45,7 @@ const Login = ({navigation}) => {
     try {
       const response = await handleUserLogin({email, password});
       const {user, accessToken} = response;
-      console.log('Login Response:', response);
+
       setCredentials({...user, accessToken});
     } catch (error) {
       console.error('Login Error:', error);

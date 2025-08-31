@@ -150,7 +150,6 @@ export const fetchTenants = (accessToken, propertyId) => {
 
 export const createTicket = (accessToken, ticketData) => {
   const url = `${FINANCY_ENDPOINT_URL}/tickets`;
-  console.log(ticketData);
 
   const create_ticket_res = axios.post(url, ticketData, {
     headers: {
@@ -253,8 +252,6 @@ export const fetchDocuments = (accessToken, property_id, propertyId) => {
 };
 
 export const uploadDocument = async (upload_url, file) => {
-  console.log('Uploading document:', file);
-
   // Fetch the file as a blob
   const response = await fetch(file.uri);
   const blob = await response.blob();
@@ -306,7 +303,6 @@ export const getTenants = (accessToken, propertyId, roomId) => {
 export const putTenantOnNotice = (accessToken, tenantId, noticeData) => {
   const url = `${FINANCY_ENDPOINT_URL}/tenants/${tenantId}/notice`;
 
-  console.log('url:', url);
   const put_notice_res = axios.patch(url, noticeData, {
     headers: {
       'Content-Type': 'application/json',

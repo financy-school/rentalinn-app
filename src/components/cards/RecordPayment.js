@@ -198,7 +198,6 @@ const RecordPayment = ({handleClosePress}) => {
                 <DateTimePicker
                   mode="single"
                   onChange={value => {
-                    console.log('Selected Date: form cahne', value);
                     setJoiningDate(value.date);
                   }}
                   styles={calendarStyles}

@@ -15,9 +15,7 @@ export const CredentialsProvider = ({children}) => {
         const userDetails = await getOwnerDetails(JSON.parse(data));
         setCredentials(JSON.parse(data));
       }
-      console.log('Credentials loaded:', data);
     } catch (e) {
-      console.log('Error loading credentials', e);
     } finally {
       setLoading(false);
     }
@@ -25,21 +23,16 @@ export const CredentialsProvider = ({children}) => {
 
   const saveCredentials = async creds => {
     try {
-      console.log('Saving credentials:', creds);
       await AsyncStorage.setItem('pgOwnerCredentials', JSON.stringify(creds));
       setCredentials(creds);
-    } catch (e) {
-      console.log('Error saving credentials', e);
-    }
+    } catch (e) {}
   };
 
   const clearCredentials = async () => {
     try {
       await AsyncStorage.removeItem('pgOwnerCredentials');
       setCredentials(null);
-    } catch (e) {
-      console.log('Error clearing credentials', e);
-    }
+    } catch (e) {}
   };
 
   useEffect(() => {

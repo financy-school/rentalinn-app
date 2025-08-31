@@ -3,23 +3,26 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  TextInput,
-  FlatList,
   TouchableOpacity,
   SafeAreaView,
+  Image,
 } from 'react-native';
-import {Button, FAB, Text} from 'react-native-paper';
+import {
+  Button,
+  Chip,
+  FAB,
+  Menu,
+  TextInput as PaperInput,
+} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {TextInput as PaperInput} from 'react-native-paper';
 import {ThemeContext} from '../context/ThemeContext';
-import StandardText from '../components/StandardText/StandardText';
+import {CredentialsContext} from '../context/CredentialsContext';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
-import {Menu} from 'react-native-paper';
 import Share from 'react-native-share';
 import {getDocument, propertyRooms, deleteRoom} from '../services/NetworkUtils';
-import {CredentialsContext} from '../context/CredentialsContext';
 import colors from '../theme/color';
+import StandardText from '../components/StandardText/StandardText';
 
 const Rooms = ({navigation}) => {
   const {theme: mode} = useContext(ThemeContext);
@@ -43,6 +46,7 @@ const Rooms = ({navigation}) => {
   const accessToken = credentials.accessToken;
   const propertyId = credentials.property_id;
 
+  // 🔹 Fetch rooms with image URLs
   const fetchRooms = useCallback(async () => {
     if (!accessToken || !propertyId) {
       setError('Missing access token or property ID');
@@ -53,26 +57,47 @@ const Rooms = ({navigation}) => {
     try {
       setLoading(true);
       const response = await propertyRooms(accessToken, propertyId);
-
       const roomData = response.data.items || [];
-      setRooms(roomData);
+
+      // Resolve image URLs for each room
+      const roomsWithImages = await Promise.all(
+        roomData.map(async r => {
+          let imageUrl = null;
+          if (r.image_document_id_list?.length > 0) {
+            try {
+              const docId = r.image_document_id_list[0];
+              const res = await getDocument(accessToken, propertyId, docId);
+              imageUrl = res?.data?.download_url || null;
+            } catch (err) {}
+          }
+          return {...r, imageUrl}; // attach imageUrl
+        }),
+      );
+
+      setRooms(roomsWithImages);
       setError(null);
 
-      // Calculate filter values from API data
-      const allCount = roomData.length;
-      const vacantCount = roomData.filter(r => r.status === 'VACANT').length;
-      const fourBedsCount = roomData.filter(r => r.bedCount === 4).length;
-      const oneBedCount = roomData.filter(r => r.bedCount === 1).length;
-      const twoBedsCount = roomData.filter(r => r.bedCount === 2).length;
-      const threeBedsCount = roomData.filter(r => r.bedCount === 3).length;
+      // Calculate filter values
+      const allCount = roomsWithImages.length;
+      const vacantCount = roomsWithImages.filter(
+        r => r.status === 'VACANT',
+      ).length;
+      const oneBedCount = roomsWithImages.filter(r => r.bedCount === 1).length;
+      const twoBedsCount = roomsWithImages.filter(r => r.bedCount === 2).length;
+      const threeBedsCount = roomsWithImages.filter(
+        r => r.bedCount === 3,
+      ).length;
+      const fourBedsCount = roomsWithImages.filter(
+        r => r.bedCount === 4,
+      ).length;
 
       setFilterOptions([
         {label: 'All', key: 'ALL', value: allCount},
         {label: 'Vacant Beds', key: 'VACANT', value: vacantCount},
-        {label: '4 Beds', key: '4', value: fourBedsCount},
         {label: '1 Bed', key: '1', value: oneBedCount},
         {label: '2 Beds', key: '2', value: twoBedsCount},
         {label: '3 Beds', key: '3', value: threeBedsCount},
+        {label: '4 Beds', key: '4', value: fourBedsCount},
       ]);
     } catch (err) {
       console.error('Error fetching rooms:', err);
@@ -92,101 +117,43 @@ const Rooms = ({navigation}) => {
 
   useEffect(() => {
     fetchRooms();
-
-    // Add a listener for when the screen receives focus
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchRooms();
-    });
-
-    // Clean up the listener when component unmounts
+    const unsubscribe = navigation.addListener('focus', fetchRooms);
     return unsubscribe;
   }, [navigation, fetchRooms]);
 
+  // 🔹 Filtering
   const filteredRooms = rooms
     .filter(room => {
-      if (!search) {
-        return true;
-      }
-
-      // Filter by search term
-      const searchTerm = search.toLowerCase();
-      return room.name.toLowerCase().includes(searchTerm);
+      if (!search) return true;
+      return room.name?.toLowerCase().includes(search.toLowerCase());
     })
     .filter(room => {
-      if (selectedFilter === 'ALL') {
-        return true;
-      }
-      if (selectedFilter === 'VACANT') {
-        return room.status === 'VACANT';
-      }
-      if (selectedFilter === '1') {
-        return room.bedCount === 1;
-      }
-      if (selectedFilter === '2') {
-        return room.bedCount === 2;
-      }
-      if (selectedFilter === '3') {
-        return room.bedCount === 3;
-      }
-      if (selectedFilter === '4') {
-        return room.bedCount === 4;
-      }
-      return room.type === selectedFilter;
+      if (selectedFilter === 'ALL') return true;
+      if (selectedFilter === 'VACANT') return room.status === 'VACANT';
+      return room.bedCount?.toString() === selectedFilter;
     });
 
-  // Helper to share room details
+  // 🔹 Share
   const handleShareRoom = async room => {
     try {
-      // Build message
       const message = `Room Details:\nName: ${room.name || room.id}\nStatus: ${
-        room.isAvailable ? 'Available' : 'Occupied'
-      }\nBeds: ${room.totalBeds || room.bedroomCount || 0}\nSize: ${
-        room.area
-      } sqft`;
+        room.status
+      }\nBeds: ${room.bedCount || 0}\nSize: ${room.area} sqft`;
 
-      // Get image URL from document ID if available
-      let imageUrl = null;
-      if (
-        room.image_document_id_list &&
-        room.image_document_id_list.length > 0
-      ) {
-        const documentId = room.image_document_id_list[0];
-
-        if (documentId) {
-          try {
-            // getDocument should be imported from your services
-            const result = await getDocument(
-              accessToken,
-              propertyId,
-              documentId,
-            );
-
-            imageUrl = result?.data?.download_url || null;
-          } catch (err) {
-            console.log('Error fetching image URL:', err);
-          }
-        }
-      }
-
-      const shareOptions = {
+      await Share.open({
         title: 'Share Room',
         message,
-        url: imageUrl || undefined,
-      };
-      await Share.open(shareOptions);
-    } catch (error) {}
+        url: room.imageUrl || undefined,
+      });
+    } catch (err) {}
   };
 
   return (
     <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        marginTop: 25,
-      }}>
-      <View style={{flex: 1, backgroundColor: colors.background}}>
+      style={{flex: 1, backgroundColor: colors.background, marginTop: 25}}>
+      <View style={{flex: 1}}>
         <ScrollView contentContainerStyle={{padding: 16}}>
-          {/* Search Bar */}
+          {/* 🔹 Search */}
           <PaperInput
             mode="flat"
             placeholder="Search Rooms..."
@@ -198,60 +165,45 @@ const Rooms = ({navigation}) => {
             activeUnderlineColor="transparent"
             theme={{
               roundness: 25,
-              colors: {
-                background: '#fff',
-                text: '#000',
-                placeholder: '#888',
-              },
+              colors: {background: '#fff', text: '#000', placeholder: '#888'},
             }}
           />
 
           <Gap size="md" />
 
+          {/* 🔹 Filters */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.filterContainer}>
             {filterOptions.map(option => (
-              <TouchableOpacity
+              <Chip
                 key={option.key}
+                selected={selectedFilter === option.key}
                 onPress={() => setSelectedFilter(option.key)}
                 style={[
-                  styles.filterBox,
+                  styles.chip,
                   selectedFilter === option.key && {
                     backgroundColor: colors.primary,
                   },
-                ]}>
-                <View style={styles.textWrapper}>
-                  <Text
-                    style={{
-                      color: selectedFilter === option.key ? '#fff' : '#000',
-                      textAlign: 'center',
-                    }}>
-                    {option.label}
-                  </Text>
-                  <Text
-                    style={{
-                      color: selectedFilter === option.key ? '#fff' : '#000',
-                      fontSize: 12,
-                      textAlign: 'center',
-                    }}>
-                    {option.value}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                ]}
+                textStyle={{
+                  color: selectedFilter === option.key ? '#fff' : '#000',
+                }}>
+                {option.label} ({option.value})
+              </Chip>
             ))}
           </ScrollView>
 
+          {/* 🔹 Loader / Error / Empty */}
           {loading && (
-            <View style={{padding: 20, alignItems: 'center'}}>
-              <Text>Loading rooms...</Text>
-            </View>
+            <StandardText style={{textAlign: 'center'}}>
+              Loading rooms...
+            </StandardText>
           )}
-
           {error && (
-            <View style={{padding: 20, alignItems: 'center'}}>
-              <Text style={{color: 'red'}}>{error}</Text>
+            <View style={{alignItems: 'center'}}>
+              <StandardText style={{color: 'red'}}>{error}</StandardText>
               <Button
                 mode="contained"
                 onPress={fetchRooms}
@@ -260,57 +212,61 @@ const Rooms = ({navigation}) => {
               </Button>
             </View>
           )}
-
-          {/* Room Cards */}
           {!loading && !error && filteredRooms.length === 0 && (
-            <View style={{padding: 20, alignItems: 'center'}}>
-              <Text>No rooms found</Text>
-            </View>
+            <StandardText style={{textAlign: 'center'}}>
+              No rooms found
+            </StandardText>
           )}
 
-          {/* Room Cards */}
+          {/* 🔹 Room Cards */}
           {!loading &&
             filteredRooms.map(room => (
-              <StandardCard key={room.id} style={{marginTop: 10}}>
+              <StandardCard key={room.id} style={styles.card}>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('RoomDetails', {room})}>
-                  {/* Header Row */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  {/* Image */}
+                  {room.imageUrl ? (
+                    <Image
+                      source={{uri: room.imageUrl}}
+                      style={{width: '100%', height: 150}}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.imagePlaceholder}>
                       <MaterialCommunityIcons
-                        name="door"
-                        size={24}
-                        color={colors.primary}
+                        name="image-off"
+                        size={40}
+                        color="#aaa"
                       />
-                      <StandardText style={{marginLeft: 8}} fontWeight="bold">
-                        Room {room.name || room.id}
-                      </StandardText>
                     </View>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  )}
+
+                  {/* Content */}
+                  <View style={{padding: 12}}>
+                    <View style={styles.titleRow}>
+                      <StandardText fontWeight="bold" style={styles.roomTitle}>
+                        {room.name || `Room ${room.id}`}
+                      </StandardText>
+
+                      {/* Status */}
                       <View
-                        style={{
-                          backgroundColor: room.isAvailable
-                            ? '#DFF5E1'
-                            : '#FFF2D8',
-                          borderRadius: 15,
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                        }}>
-                        <Text
+                        style={[
+                          styles.statusBadge,
+                          {
+                            backgroundColor:
+                              room.status === 'VACANT' ? '#DFF5E1' : '#FFE2E2',
+                          },
+                        ]}>
+                        <StandardText
                           style={{
-                            color: room.isAvailable ? '#219653' : '#F2994A',
-                            fontWeight: 'bold',
-                            fontSize: 12,
+                            color:
+                              room.status === 'VACANT' ? '#219653' : '#D9534F',
                           }}>
-                          {room.isAvailable ? 'Available' : 'Occupied'}
-                        </Text>
+                          {room.status}
+                        </StandardText>
                       </View>
 
+                      {/* Menu */}
                       <Menu
                         visible={menuVisible && anchorBedId === room.id}
                         onDismiss={() => {
@@ -322,125 +278,88 @@ const Rooms = ({navigation}) => {
                             onPress={() => {
                               setMenuVisible(true);
                               setAnchorBedId(room.id);
-                            }}
-                            style={{paddingHorizontal: 8, paddingVertical: 4}}>
+                            }}>
                             <MaterialCommunityIcons
                               name="dots-vertical"
-                              size={20}
-                              color="#888"
+                              size={22}
+                              color="#555"
                             />
                           </TouchableOpacity>
                         }>
                         <Menu.Item
-                          onPress={() => {
-                            setMenuVisible(false);
-                            setAnchorBedId(null);
-                            navigation.navigate('AddRoom', {
-                              room,
-                              isEdit: true,
-                            });
-                          }}
+                          onPress={() =>
+                            navigation.navigate('AddRoom', {room, isEdit: true})
+                          }
                           title="Edit"
                         />
                         <Menu.Item
-                          onPress={() => {
-                            setMenuVisible(false);
-                            setAnchorBedId(null);
-                            handleShareRoom(room);
-                          }}
+                          onPress={() => handleShareRoom(room)}
                           title="Share"
                         />
-                        <Menu.Item
-                          onPress={() => {
-                            setMenuVisible(false);
-                            setAnchorBedId(null);
-                          }}
-                          title="Send Message"
-                        />
+                        <Menu.Item onPress={() => {}} title="Send Message" />
                         <Menu.Item
                           onPress={async () => {
-                            await deleteRoom(
-                              credentials.accessToken,
-                              propertyId,
-                              room.id,
-                            );
-                            setMenuVisible(false);
-                            setAnchorBedId(null);
+                            await deleteRoom(accessToken, propertyId, room.id);
                             fetchRooms();
                           }}
                           title="Delete"
                         />
                       </Menu>
                     </View>
-                  </View>
 
-                  {/* Room details - adapt these based on your API data structure */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 4,
-                    }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                      <MaterialCommunityIcons
-                        name="bed"
-                        size={20}
-                        color="#333"
-                      />
-                      <StandardText style={{marginLeft: 6}}>
-                        Beds:{' '}
-                        <Text style={{fontWeight: 'bold'}}>
-                          {room.totalBeds || 0}
-                        </Text>
+                    <StandardText style={{marginTop: 4}}>
+                      Rent:{' '}
+                      <StandardText
+                        fontWeight="bold"
+                        style={{color: colors.primary}}>
+                        ₹{room.rentAmount}
                       </StandardText>
-                    </View>
-                  </View>
-
-                  {/* Additional room info */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 4,
-                    }}>
-                    <MaterialCommunityIcons
-                      name="ruler"
-                      size={20}
-                      color="#333"
-                    />
-                    <StandardText style={{marginLeft: 6}}>
-                      Size:{' '}
-                      <Text style={{fontWeight: 'bold'}}>{room.area} sqft</Text>
                     </StandardText>
-                  </View>
 
-                  {/* Add tenant button */}
-                  <View style={{alignItems: 'flex-end', marginTop: 10}}>
-                    <Button
-                      mode="outlined"
-                      onPress={() => {
-                        navigation.navigate('AddTenant');
-                      }}
-                      labelStyle={{fontWeight: 'bold'}}>
-                      ADD TENANT
-                    </Button>
+                    {/* Info Row */}
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoItem}>
+                        <MaterialCommunityIcons
+                          name="bed"
+                          size={18}
+                          color="#666"
+                        />
+                        <StandardText style={styles.infoText}>
+                          {room.bedCount} Beds
+                        </StandardText>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <MaterialCommunityIcons
+                          name="shower"
+                          size={18}
+                          color="#666"
+                        />
+                        <StandardText style={styles.infoText}>
+                          {room.bathroomCount} Baths
+                        </StandardText>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <MaterialCommunityIcons
+                          name="stairs"
+                          size={18}
+                          color="#666"
+                        />
+                        <StandardText style={styles.infoText}>
+                          Floor {room.floorNumber}
+                        </StandardText>
+                      </View>
+                    </View>
                   </View>
                 </TouchableOpacity>
               </StandardCard>
             ))}
         </ScrollView>
 
+        {/* 🔹 FAB */}
         <FAB
           icon="plus"
           color="#fff"
-          style={{
-            position: 'absolute',
-            bottom: 120,
-            right: 30,
-            borderRadius: 30,
-            backgroundColor: colors.primary,
-          }}
+          style={styles.fab}
           onPress={() => navigation.navigate('AddRoom')}
         />
       </View>
@@ -449,35 +368,54 @@ const Rooms = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  filterContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
+  filterContainer: {flexDirection: 'row', marginBottom: 16},
   filterBox: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
     marginRight: 10,
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
     width: 80,
   },
   searchBar: {
     marginBottom: 10,
     backgroundColor: '#fff',
     borderRadius: 25,
-    elevation: 2, // subtle shadow
+    elevation: 2,
   },
-  textWrapper: {
+  textWrapper: {justifyContent: 'center', alignItems: 'center', flex: 1},
+  card: {marginTop: 14, borderRadius: 16, overflow: 'hidden', elevation: 3},
+  imagePlaceholder: {
+    width: '100%',
+    height: 150,
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  roomTitle: {fontSize: 16, color: '#333'},
+  statusBadge: {borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3},
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  infoItem: {flexDirection: 'row', alignItems: 'center'},
+  infoText: {marginLeft: 4, fontSize: 13, color: '#555'},
+  fab: {
+    position: 'absolute',
+    bottom: 120,
+    right: 30,
+    borderRadius: 30,
+    backgroundColor: colors.primary,
+  },
+  chip: {marginRight: 10, borderRadius: 20, elevation: 1},
 });
 
 export default Rooms;

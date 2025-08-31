@@ -152,23 +152,6 @@ const RoomDetails = ({navigation, route}) => {
             );
           })}
         </View>
-
-        <TouchableOpacity
-          onPress={() => console.log('Show Menu')}
-          style={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            backgroundColor: 'transparent',
-            padding: 8,
-            borderRadius: 20,
-          }}>
-          <MaterialCommunityIcons
-            name="dots-vertical"
-            size={24}
-            color="white"
-          />
-        </TouchableOpacity>
       </View>
 
       <View

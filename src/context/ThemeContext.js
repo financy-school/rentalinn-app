@@ -22,9 +22,7 @@ export const ThemeProvider = ({children}) => {
         const systemTheme = Appearance.getColorScheme() || 'light';
         setTheme('light');
       }
-    } catch (e) {
-      console.log('Failed to load theme from AsyncStorage:', e);
-    }
+    } catch (e) {}
   };
 
   useEffect(() => {

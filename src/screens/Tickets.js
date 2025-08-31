@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
-import {Button, FAB, Text} from 'react-native-paper';
+import {Button, FAB, Chip} from 'react-native-paper';
 import {TextInput as PaperInput} from 'react-native-paper';
 import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
@@ -82,9 +82,7 @@ const Tickets = ({navigation}) => {
               if (docRes?.data?.download_url) {
                 urls.push(docRes.data.download_url);
               }
-            } catch (err) {
-              console.log('Error fetching ticket image:', err);
-            }
+            } catch (err) {}
           }
           imagesMap[ticket.id] = urls;
         }
@@ -157,9 +155,7 @@ const Tickets = ({navigation}) => {
         status: 'CLOSED',
       });
       fetchData(); // ✅ Refresh tickets
-    } catch (err) {
-      console.log('Error closing ticket:', err);
-    }
+    } catch (err) {}
   };
 
   return (
@@ -175,7 +171,7 @@ const Tickets = ({navigation}) => {
                   setModalVisible(false);
                   setSelectedImageUrl(null);
                 }}>
-                <Text style={{fontSize: 18, color: '#fff'}}>Close</Text>
+                <StandardText style={{color: '#fff'}}>Close</StandardText>
               </TouchableOpacity>
               {selectedImageUrl && (
                 <View style={styles.modalImageWrapper}>
@@ -213,33 +209,21 @@ const Tickets = ({navigation}) => {
             showsHorizontalScrollIndicator={false}
             style={styles.filterContainer}>
             {filterOptions.map(option => (
-              <TouchableOpacity
+              <Chip
                 key={option.key}
+                selected={selectedFilter === option.key}
                 onPress={() => setSelectedFilter(option.key)}
                 style={[
-                  styles.filterBox,
+                  styles.chip,
                   selectedFilter === option.key && {
                     backgroundColor: colors.primary,
                   },
-                ]}>
-                <View style={styles.textWrapper}>
-                  <Text
-                    style={{
-                      color: selectedFilter === option.key ? '#fff' : '#000',
-                      textAlign: 'center',
-                    }}>
-                    {option.label}
-                  </Text>
-                  <Text
-                    style={{
-                      color: selectedFilter === option.key ? '#fff' : '#000',
-                      fontSize: 12,
-                      textAlign: 'center',
-                    }}>
-                    {option.value}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                ]}
+                textStyle={{
+                  color: selectedFilter === option.key ? '#fff' : '#000',
+                }}>
+                {option.label} ({option.value})
+              </Chip>
             ))}
           </ScrollView>
 
@@ -247,77 +231,111 @@ const Tickets = ({navigation}) => {
           {loading ? (
             <View
               style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-              <Text>Loading tickets...</Text>
+              <StandardText>Loading tickets...</StandardText>
             </View>
           ) : (
             <>
               {/* Ticket List */}
               {tickets.map(ticket => (
-                <StandardCard
-                  key={ticket.id}
-                  style={{marginBottom: 16, padding: 12}}>
-                  <View style={styles.ticketHeader}>
-                    <StandardText style={{fontWeight: 'bold'}}>
-                      {ticket.id}
+                <StandardCard style={styles.card}>
+                  {/* Header */}
+                  <View style={styles.header}>
+                    <StandardText fontWeight="semibold" style={styles.ticketId}>
+                      #{ticket.id}
                     </StandardText>
                     <View
                       style={[
                         styles.statusBadge,
                         {
                           backgroundColor:
-                            ticket.status === 'PENDING' ? '#f44336' : '#4caf50',
+                            ticket.status === 'PENDING'
+                              ? '#ff9800'
+                              : ticket.status === 'ACTIVE'
+                              ? '#4caf50'
+                              : '#9e9e9e',
                         },
                       ]}>
-                      <StandardText size="sm" color="default_gray">
+                      <StandardText
+                        fontWeight="semibold"
+                        size="sm"
+                        style={{color: '#fff'}}>
                         {ticket.status}
                       </StandardText>
                     </View>
                   </View>
 
-                  <StandardText size="sm" color="default_gray">
-                    {ticket.timestamp}
-                  </StandardText>
-
-                  <View style={{marginTop: 8, flexDirection: 'row'}}>
-                    <StandardText fontWeight="bold">Raised by: </StandardText>
-                    <StandardText style={{color: colors.primary}}>
-                      {ticket.raisedBy}
+                  {/* Raised By + Room */}
+                  <View style={styles.infoRow}>
+                    <StandardText
+                      size="sm"
+                      fontWeight="semibold"
+                      color="default_gray">
+                      👤 {ticket.raisedBy}
+                    </StandardText>
+                    <StandardText size="sm" color="default_gray">
+                      🏠 Room {ticket.roomId}
                     </StandardText>
                   </View>
 
-                  {/* Ticket Images */}
-                  {ticketImages[ticket.id]?.length > 0 && (
-                    <ScrollView horizontal style={{marginVertical: 8}}>
-                      {ticketImages[ticket.id].map((imgUrl, idx) => (
-                        <TouchableOpacity
-                          key={idx}
-                          style={{marginRight: 8}}
-                          onPress={() => {
-                            setSelectedImageUrl(imgUrl);
-                            setModalVisible(true);
-                          }}>
-                          <Image
-                            style={styles.rectImage}
-                            source={{uri: imgUrl}}
-                          />
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  )}
-
-                  <View style={styles.separator} />
-
-                  <StandardText fontWeight="bold">
-                    Issue: {ticket.issue}
+                  {/* Time */}
+                  <StandardText
+                    size="xs"
+                    color="default_gray"
+                    style={styles.timeText}>
+                    {new Date(ticket.createdAt).toLocaleString()}
                   </StandardText>
-                  <StandardText>{ticket.description}</StandardText>
 
+                  {/* Images */}
+                  {ticketImages[ticket.id] &&
+                    ticketImages[ticket.id].length > 0 && (
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.imageScroll}>
+                        {ticketImages[ticket.id].map((imgUrl, idx) => (
+                          <TouchableOpacity
+                            key={idx}
+                            style={{marginRight: 8}}
+                            onPress={() => {
+                              setSelectedImageUrl(imgUrl);
+                              setModalVisible(true);
+                            }}>
+                            <Image
+                              key={idx}
+                              source={{uri: imgUrl}}
+                              style={styles.image}
+                            />
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )}
+
+                  {/* Issue + Description */}
+                  <View style={{marginTop: 6}}>
+                    <StandardText fontWeight="semibold" style={styles.issue}>
+                      {ticket.issue}
+                    </StandardText>
+                    {ticket.description ? (
+                      <StandardText
+                        size="sm"
+                        color="default_gray"
+                        numberOfLines={3}
+                        style={styles.description}>
+                        {ticket.description}
+                      </StandardText>
+                    ) : null}
+                  </View>
+
+                  {/* Close Button */}
                   {ticket.status === 'PENDING' && (
-                    <View style={styles.closeButtonWrapper}>
+                    <View style={styles.actionRow}>
                       <Button
-                        mode="outlined"
+                        mode="contained"
+                        style={styles.actionButton}
                         onPress={() => handleCloseTicket(ticket.id)}>
-                        <StandardText>CLOSE</StandardText>
+                        <StandardText style={{color: '#fff'}}>
+                          Close Ticket
+                        </StandardText>
                       </Button>
                     </View>
                   )}
@@ -372,7 +390,7 @@ const styles = StyleSheet.create({
   },
   filterBox: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
     marginRight: 10,
@@ -399,11 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  statusBadge: {
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
+
   separator: {
     height: 1,
     backgroundColor: '#ddd',
@@ -453,6 +467,78 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'center',
   },
+  card: {
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: {width: 0, height: 2},
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ticketId: {
+    fontSize: 16,
+  },
+  statusBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    marginTop: 6,
+  },
+  raisedBy: {
+    marginLeft: 4,
+    color: '#2196f3',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  timeText: {
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  imageScroll: {
+    marginVertical: 12,
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    marginRight: 10,
+    backgroundColor: '#f5f5f5',
+  },
+  issue: {
+    fontSize: 15,
+    marginBottom: 2,
+    color: '#222',
+  },
+  description: {
+    marginTop: 2,
+    lineHeight: 18,
+  },
+  actionRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  actionButton: {
+    borderRadius: 25,
+    backgroundColor: '#1976d2',
+    paddingHorizontal: 20,
+    elevation: 2,
+  },
+  chip: {marginRight: 10, borderRadius: 20, elevation: 1},
 });
 
 export default Tickets;

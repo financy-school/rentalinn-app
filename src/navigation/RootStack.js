@@ -1,5 +1,5 @@
 import {Colors} from '../components/styles';
-const {primary, tertiary} = Colors;
+
 import Login from '../screens/Login';
 import SignUp from '../screens/Signup';
 import {NavigationContainer} from '@react-navigation/native';
@@ -14,6 +14,7 @@ import TenantDetails from '../screens/TenantDetails';
 import AddRoom from '../screens/AddRoom';
 import AddTenant from '../screens/AddTenant';
 import AddTicket from '../screens/AddTicket';
+import colors from '../theme/color';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,7 +40,7 @@ const RootStack = () => {
           headerStyle: {
             backgroundColor: '#ffffff',
           },
-          headerTintColor: tertiary,
+          headerTintColor: colors.primary,
           headerTransparent: true,
           headerTitle: '',
           headerLeftContainerStyle: {
@@ -50,14 +51,14 @@ const RootStack = () => {
         {credentials ? (
           <>
             <Stack.Screen
-              options={{headerTintColor: primary}}
+              options={{headerTintColor: colors.primary}}
               name="DrawerStack"
               component={DrawerStack}
             />
 
             <Stack.Screen
               options={{
-                headerTintColor: primary,
+                headerTintColor: colors.primary,
                 headerShown: true,
                 headerTitle: 'Settings',
                 headerTitleAlign: 'center',
@@ -67,7 +68,7 @@ const RootStack = () => {
                 headerTitleStyle: {
                   fontSize: 18,
                   fontWeight: 'bold',
-                  color: primary,
+                  color: colors.primary,
                 },
                 headerLeftContainerStyle: {
                   paddingLeft: 20,
@@ -81,12 +82,12 @@ const RootStack = () => {
                 headerBackTitle: 'Back',
                 headerBackButtonMenuVisible: true,
                 headerBackButtonVisible: true,
-                headerBackButtonPressColor: primary,
+                headerBackButtonPressColor: colors.primary,
                 headerBackButtonPressOpacity: 0.8,
-                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleColor: colors.primary,
                 headerBackButtonPressRippleOpacity: 0.8,
                 headerBackButtonPressRippleRadius: 20,
-                headerBackButtonPressRippleColorAndroid: primary,
+                headerBackButtonPressRippleColorAndroid: colors.primary,
               }}
               name="Settings"
               component={RentDetails}
@@ -94,15 +95,17 @@ const RootStack = () => {
 
             <Stack.Screen
               options={{
-                headerTintColor: primary,
+                headerTintColor: colors.black,
+                headerTitle: 'Room Details',
+                headerTitleAlign: 'center',
                 headerShown: true,
                 headerBackButtonVisible: true,
-                headerBackButtonPressColor: primary,
+                headerBackButtonPressColor: colors.primary,
                 headerBackButtonPressOpacity: 0.8,
-                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleColor: colors.primary,
                 headerBackButtonPressRippleOpacity: 0.8,
                 headerBackButtonPressRippleRadius: 20,
-                headerBackButtonPressRippleColorAndroid: primary,
+                headerBackButtonPressRippleColorAndroid: colors.primary,
               }}
               name="RoomDetails"
               component={RoomDetails}
@@ -129,16 +132,16 @@ const RootStack = () => {
             <Stack.Screen
               options={{
                 headerShown: true,
-                headerTitle: 'Profile',
-                headerTintColor: primary,
+                headerTitle: 'Tenant Details',
+                headerTintColor: colors.black,
                 headerTitleAlign: 'center',
                 headerBackButtonVisible: true,
-                headerBackButtonPressColor: primary,
+                headerBackButtonPressColor: colors.primary,
                 headerBackButtonPressOpacity: 0.8,
-                headerBackButtonPressRippleColor: primary,
+                headerBackButtonPressRippleColor: colors.primary,
                 headerBackButtonPressRippleOpacity: 0.8,
                 headerBackButtonPressRippleRadius: 20,
-                headerBackButtonPressRippleColorAndroid: primary,
+                headerBackButtonPressRippleColorAndroid: colors.primary,
               }}
               name="TenantDetails"
               component={TenantDetails}
