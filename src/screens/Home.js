@@ -5,12 +5,32 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
-import {Appbar, Avatar, Button} from 'react-native-paper';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  TextInput,
+} from 'react-native';
+import {
+  Appbar,
+  Avatar,
+  Button,
+  FAB,
+  Badge,
+  Card,
+  List,
+  Chip,
+  DataTable,
+  Switch,
+  SegmentedButtons,
+} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import CircularIconsWithText from '../components/cards/CircularIcon';
 import {ThemeContext} from '../context/ThemeContext';
-import StandardAccordion from '../components/StandardAccordion/StandardAccordion';
+import {CredentialsContext} from '../context/CredentialsContext';
+import {analyticsDashBoard} from '../services/NetworkUtils';
+import CircularIconsWithText from '../components/cards/CircularIcon';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
@@ -25,51 +45,198 @@ import SendAnnouncement from '../components/cards/SendAnnouncement';
 import RecordPayment from '../components/cards/RecordPayment';
 import AddRoom from '../components/cards/AddRoom';
 import Contacts from '../components/cards/Contacts';
-import {CredentialsContext} from '../context/CredentialsContext';
-import {analyticsDashBoard} from '../services/NetworkUtils';
+import {PieChart, LineChart, StackedBarChart} from 'react-native-chart-kit';
+import * as Progress from 'react-native-progress';
 import colors from '../theme/color';
+
+const screenWidth = Dimensions.get('window').width;
 
 const Home = ({navigation}) => {
   const {theme: mode, toggleTheme} = useContext(ThemeContext);
   const {credentials} = useContext(CredentialsContext);
+
   const [selectedAction, setSelectedAction] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scope, setScope] = useState('property'); // property | unit | tenant
+  const [selectedProperty, setSelectedProperty] = useState('All');
+  const [autoRecon, setAutoRecon] = useState(true);
 
   const bottomSheetModalRef = useRef(null);
-
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
-  const handleClosePress = useCallback(() => {
-    bottomSheetModalRef.current?.close();
-  }, []);
-
+  const handleClosePress = useCallback(
+    () => bottomSheetModalRef.current?.close(),
+    [],
+  );
   const handleQuickActionPress = useCallback(action => {
     setSelectedAction(action);
     bottomSheetModalRef.current?.present();
   }, []);
 
+  // Fetch analytics (plug your API later)
   useEffect(() => {
     const fetchAnalyticsData = async () => {
       try {
         const response = await analyticsDashBoard(credentials.accessToken);
         setAnalyticsData(response.data);
       } catch (error) {
+        // Fallback to mock if API not ready
+        setAnalyticsData(null);
         console.error('Error fetching analytics data:', error);
       }
     };
     fetchAnalyticsData();
   }, [credentials.accessToken]);
 
+  // ---------- MOCKS (replace with API responses) ----------
+  const paid = analyticsData?.incomeStats?.actualIncome ?? 72000;
+  const notPaid = analyticsData?.incomeStats?.overdueIncome ?? 18000;
+  const totalTenants = analyticsData?.tenantStats?.totalTenants ?? 38;
+  const vacantRooms = analyticsData?.occupancyStats?.vacantRooms ?? 6;
+  const totalRooms = analyticsData?.occupancyStats?.totalRooms ?? 48;
+
+  const properties = ['All', 'Green View', 'City Heights', 'Lake Shore'];
+  const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+  const revenueByMonth = [150, 165, 158, 172, 168, 181]; // ₹k
+  const vacancyLossByMonth = [12, 10, 14, 9, 11, 8]; // ₹k
+
+  const expensesBreakdown = [
+    {
+      name: 'Electricity',
+      population: 22,
+      color: '#7E57C2',
+      legendFontColor: '#333',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Water',
+      population: 10,
+      color: '#42A5F5',
+      legendFontColor: '#333',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Services',
+      population: 14,
+      color: '#26A69A',
+      legendFontColor: '#333',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Repairs',
+      population: 18,
+      color: '#EF5350',
+      legendFontColor: '#333',
+      legendFontSize: 12,
+    },
+    {
+      name: 'Other',
+      population: 8,
+      color: '#FFCA28',
+      legendFontColor: '#333',
+      legendFontSize: 12,
+    },
+  ];
+
+  const reconInbox = [
+    {
+      id: 'm1',
+      from: 'ICICI',
+      preview: 'UPI-CR ₹7,500 from Raj...',
+      matched: true,
+    },
+    {
+      id: 'm2',
+      from: 'HDFC',
+      preview: 'NEFT ₹12,000 from Priya...',
+      matched: false,
+    },
+    {
+      id: 'm3',
+      from: 'SBI',
+      preview: 'UPI-CR ₹9,000 from Aman...',
+      matched: true,
+    },
+  ];
+
+  const maintenanceRequests = [
+    {id: '1', title: 'Leaky Faucet - 201', status: 'Open', priority: 'High'},
+    {
+      id: '2',
+      title: 'AC not cooling - 305',
+      status: 'In-progress',
+      priority: 'High',
+    },
+    {
+      id: '3',
+      title: 'WiFi intermittent - 102',
+      status: 'Open',
+      priority: 'Medium',
+    },
+    {id: '4', title: 'Wall paint - 402', status: 'Completed', priority: 'Low'},
+  ];
+
+  const tenants = [
+    {id: 't1', name: 'John Doe', room: '201', status: 'On-time'},
+    {id: 't2', name: 'Riya Sharma', room: '305', status: 'Overdue'},
+    {id: 't3', name: 'Alex Chen', room: '102', status: 'On-time'},
+  ];
+
+  const occupancyGrid = [
+    {room: '101', status: 'occupied'},
+    {room: '102', status: 'vacant'},
+    {room: '103', status: 'overdue'},
+    {room: '201', status: 'occupied'},
+    {room: '202', status: 'occupied'},
+    {room: '203', status: 'vacant'},
+    {room: '301', status: 'overdue'},
+    {room: '302', status: 'occupied'},
+    {room: '303', status: 'vacant'},
+    {room: '401', status: 'occupied'},
+    {room: '402', status: 'occupied'},
+    {room: '403', status: 'vacant'},
+  ];
+
+  // ---------- Derived ----------
+  const occupancyPct = totalRooms
+    ? Math.round(((totalRooms - vacantRooms) / totalRooms) * 100)
+    : 0;
+
+  const piePaidVsDue = [
+    {
+      name: 'Paid',
+      population: 70,
+      color: '#4CAF50',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+    {
+      name: 'Due',
+      population: 30,
+      color: '#F44336',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+  ];
+
+  // Colors for occupancy grid
+  const getRoomColor = status => {
+    switch (status) {
+      case 'occupied':
+        return '#4CAF50';
+      case 'vacant':
+        return '#BDBDBD';
+      case 'overdue':
+        return '#F44336';
+      default:
+        return '#9E9E9E';
+    }
+  };
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <BottomSheetModalProvider>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: colors.background,
-            padding: 15,
-          }}>
+        <View style={{flex: 1, backgroundColor: colors.background}}>
+          {/* Appbar */}
           <Appbar.Header style={{backgroundColor: 'transparent'}}>
             <TouchableOpacity onPress={() => navigation.openDrawer()}>
               <Avatar.Icon
@@ -87,14 +254,22 @@ const Home = ({navigation}) => {
               </StandardText>
             </View>
 
-            <TouchableOpacity onPress={handlePresentModalPress}>
-              <Avatar.Icon
-                size={40}
-                icon="bell"
-                style={{backgroundColor: colors.light_black}}
-                color={colors.white}
-              />
+            <TouchableOpacity
+              onPress={() => bottomSheetModalRef.current?.present()}>
+              <View>
+                <Avatar.Icon
+                  size={40}
+                  icon="bell"
+                  style={{backgroundColor: colors.light_black}}
+                  color={colors.white}
+                />
+                <Badge
+                  style={{position: 'absolute', top: -4, right: -4}}
+                  size={10}
+                />
+              </View>
             </TouchableOpacity>
+
             <TouchableOpacity onPress={toggleTheme} style={{marginLeft: 10}}>
               <Avatar.Icon
                 size={40}
@@ -105,292 +280,706 @@ const Home = ({navigation}) => {
             </TouchableOpacity>
           </Appbar.Header>
 
-          <ScrollView>
-            <Gap size="md" />
-            <StandardAccordion
-              heading="Tenants"
-              icon={
-                <MaterialCommunityIcons
-                  name="home"
-                  size={20}
-                  color={colors.primary}
-                />
-              }
-              content="Lorem ipsum dolor sit amet, consectetur adipiscing elit..."
-            />
+          <ScrollView contentContainerStyle={{padding: 15}}>
+            {/* Pitch-aligned alerting & filters */}
+            <Card style={styles.bannerCard}>
+              <MaterialCommunityIcons
+                name="lightning-bolt-outline"
+                size={22}
+                color="#D81B60"
+              />
+              <View style={{marginLeft: 10}}>
+                <StandardText fontWeight="bold">
+                  Real-time tracking enabled
+                </StandardText>
+                <StandardText size="sm">
+                  Monitor rent, occupancy & issues in one place.
+                </StandardText>
+              </View>
+            </Card>
 
-            <View
-              style={{paddingHorizontal: 15, marginTop: 10, marginBottom: 10}}>
-              <StandardText size="lg" fontWeight="bold">
-                Quick Actions
-              </StandardText>
+            {/* Search + scope filter */}
+
+            <View>
+              <SegmentedButtons
+                value={scope}
+                onValueChange={setScope}
+                buttons={[
+                  {
+                    value: 'property',
+                    label: 'Property',
+                    labelStyle: {
+                      fontSize: 16,
+                      fontWeight: '600',
+                      fontFamily: 'Metropolis-Medium',
+                      color: scope === 'property' ? '#fff' : '#000',
+                    },
+                    style: {
+                      backgroundColor:
+                        scope === 'property' ? '#4CAF50' : '#f0f0f0',
+                    },
+                  },
+                  {
+                    value: 'unit',
+                    label: 'Unit',
+                    labelStyle: {
+                      fontSize: 16,
+                      fontWeight: '600',
+                      fontFamily: 'Metropolis-Medium',
+                      color: scope === 'unit' ? '#fff' : '#000',
+                    },
+                    style: {
+                      backgroundColor: scope === 'unit' ? '#4CAF50' : '#f0f0f0',
+                    },
+                  },
+                  {
+                    value: 'tenant',
+                    label: 'Tenant',
+                    labelStyle: {
+                      fontSize: 16,
+                      fontWeight: '600',
+                      fontFamily: 'Metropolis-Medium',
+                      color: scope === 'tenant' ? '#fff' : '#000',
+                    },
+                    style: {
+                      backgroundColor:
+                        scope === 'tenant' ? '#4CAF50' : '#f0f0f0',
+                    },
+                  },
+                ]}
+              />
+            </View>
+            <View style={styles.searchRow}>
+              <View style={{flex: 1, marginRight: 10}}>
+                <TextInput
+                  placeholder="Search tenants, units, or properties"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  style={styles.searchInput}
+                />
+              </View>
             </View>
 
-            <CircularIconsWithText onActionPress={handleQuickActionPress} />
+            {/* Property chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{marginBottom: 10}}>
+              {properties.map(p => (
+                <Chip
+                  key={p}
+                  selected={selectedProperty === p}
+                  onPress={() => setSelectedProperty(p)}
+                  style={{marginRight: 8}}
+                  textStyle={{
+                    color: selectedProperty === p ? '#fff' : '#000',
+                    fontFamily: 'Metropolis-Medium',
+                  }}>
+                  {p}
+                </Chip>
+              ))}
+            </ScrollView>
 
-            <Gap size="lg" />
-            <StandardCard style={{elevation: 2}}>
-              <StandardText size="lg" fontWeight="bold" textAlign="center">
-                Rent Details
+            {/* KPI Cards */}
+            <View style={styles.kpiGrid}>
+              <StandardCard style={styles.kpiCard}>
+                <StandardText size="sm">Occupancy</StandardText>
+                <StandardText size="xl" fontWeight="bold">
+                  {occupancyPct}%
+                </StandardText>
+                <Progress.Bar
+                  progress={occupancyPct / 100}
+                  width={null}
+                  style={{marginTop: 8}}
+                  color={colors.primary}
+                />
+              </StandardCard>
+              <StandardCard style={styles.kpiCard}>
+                <StandardText size="sm">Rent Collected</StandardText>
+                <StandardText size="xl" fontWeight="bold">
+                  ₹{paid.toLocaleString()}
+                </StandardText>
+                <StandardText size="sm">
+                  Overdue: ₹{notPaid.toLocaleString()}
+                </StandardText>
+              </StandardCard>
+              <StandardCard style={styles.kpiCard}>
+                <StandardText size="sm">Tenants</StandardText>
+                <StandardText size="xl" fontWeight="bold">
+                  {totalTenants}
+                </StandardText>
+                <StandardText size="sm">
+                  Vacant Units: {vacantRooms}/{totalRooms}
+                </StandardText>
+              </StandardCard>
+            </View>
+
+            <Gap size="md" />
+
+            {/* Paid vs Overdue + Revenue Trend */}
+            {console.log('piePaidVsDue', piePaidVsDue)}
+            <View style={{gap: 12}}>
+              <StandardCard>
+                <StandardText size="lg" fontWeight="bold" textAlign="center">
+                  Rent Collection
+                </StandardText>
+                <PieChart
+                  data={piePaidVsDue}
+                  width={screenWidth - 40}
+                  height={220}
+                  chartConfig={{
+                    backgroundGradientFrom: '#ffffff',
+                    backgroundGradientTo: '#ffffff',
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  }}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft="15"
+                  hasLegend={true}
+                  absolute // shows absolute values instead of percentages
+                />
+              </StandardCard>
+
+              <StandardCard>
+                <StandardText size="lg" fontWeight="bold" textAlign="center">
+                  Revenue & Vacancy Loss
+                </StandardText>
+                <StackedBarChart
+                  data={{
+                    labels: months,
+                    legend: ['Revenue (₹k)', 'Vacancy Loss (₹k)'],
+                    data: revenueByMonth.map((rev, i) => [
+                      rev,
+                      vacancyLossByMonth[i],
+                    ]),
+                    barColors: ['#1976D2', '#E53935'],
+                  }}
+                  width={screenWidth - 40}
+                  height={240}
+                  chartConfig={{
+                    backgroundColor: '#fff',
+                    backgroundGradientFrom: '#fff',
+                    backgroundGradientTo: '#fff',
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                  }}
+                />
+              </StandardCard>
+            </View>
+
+            <Gap size="md" />
+
+            {/* Auto-Reconciliation (Payment Inbox Preview) */}
+            <StandardCard>
+              <View style={styles.rowBetween}>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <MaterialCommunityIcons
+                    name="sync"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <StandardText
+                    size="lg"
+                    fontWeight="bold"
+                    style={{marginLeft: 6}}>
+                    Auto Reconciliation
+                  </StandardText>
+                </View>
+                <Switch value={autoRecon} onValueChange={setAutoRecon} />
+              </View>
+              <StandardText size="sm" style={{marginTop: 6}}>
+                Securely reads payment messages and updates records instantly.
               </StandardText>
-              <View
-                style={{
-                  backgroundColor: colors.white,
-                  padding: 15,
-                  borderRadius: 10,
-                  marginTop: 10,
-                  shadowColor: colors.primary,
-                  shadowOffset: {width: 0, height: 2},
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
-                }}>
-                {/* Paid vs Not Paid row */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    Paid
-                  </StandardText>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    Not Paid
-                  </StandardText>
-                </View>
-                {/* Stats row */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    {analyticsData?.incomeStats?.actualIncome || 0}
-                  </StandardText>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    {analyticsData?.incomeStats?.overdueIncome || 0}
-                  </StandardText>
-                </View>
 
-                {/* Remind Button */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <StandardText textAlign="center" size="md" style={{flex: 1}}>
-                    On-time: {analyticsData?.tenantStats?.totalTenants || 0}
-                  </StandardText>
-                  <Button
-                    mode="contained"
-                    buttonColor={colors.white}
-                    onPress={() => {}}
-                    style={{
-                      borderRadius: 5,
-                      borderColor: colors.black,
-                      borderWidth: 1,
-                    }}>
+              <Gap size="sm" />
+              {reconInbox.map(msg => (
+                <List.Item
+                  key={msg.id}
+                  title={`${msg.from} • ${msg.preview}`}
+                  left={() => (
                     <MaterialCommunityIcons
-                      name="whatsapp"
-                      size={20}
-                      color={colors.black}
+                      name="message-text-outline"
+                      size={22}
+                      color={colors.primary}
                     />
-                    <StandardText
-                      textAlign="center"
-                      size="md"
-                      style={{flex: 1}}>
-                      REMIND TO PAY
-                    </StandardText>
-                  </Button>
-                </View>
-
-                {/* View Button */}
-                <View>
-                  <Button
-                    mode="contained"
-                    buttonColor={colors.primary}
-                    style={{
-                      width: '45%',
-                      alignSelf: 'center',
-                      marginTop: 10,
-                      marginBottom: 10,
-                      borderRadius: 5,
-                    }}
-                    onPress={() => navigation.navigate('Settings')}>
-                    <StandardText color="default_white">VIEW</StandardText>
-                  </Button>
-                </View>
-              </View>
+                  )}
+                  right={() => (
+                    <Chip
+                      mode={msg.matched ? 'flat' : 'outlined'}
+                      icon={msg.matched ? 'check' : 'alert'}>
+                      {msg.matched ? 'Matched' : 'Review'}
+                    </Chip>
+                  )}
+                />
+              ))}
+              <Button
+                mode="contained"
+                buttonColor={colors.primary}
+                style={{marginTop: 6}}>
+                Sync Now
+              </Button>
             </StandardCard>
 
-            {/* Other Stats Card */}
-            <Gap size="lg" />
-            <StandardCard style={{elevation: 2}}>
-              <StandardText size="lg" fontWeight="bold" textAlign="center">
-                Other Stats
+            <Gap size="md" />
+
+            {/* P&L by scope */}
+            <StandardCard>
+              <StandardText size="lg" fontWeight="bold">
+                Profit & Loss —{' '}
+                {scope === 'property'
+                  ? 'Property'
+                  : scope === 'unit'
+                  ? 'Unit'
+                  : 'Tenant'}
               </StandardText>
+              <DataTable>
+                <DataTable.Header>
+                  <DataTable.Title>
+                    {scope === 'property'
+                      ? 'Property'
+                      : scope === 'unit'
+                      ? 'Unit'
+                      : 'Tenant'}
+                  </DataTable.Title>
+                  <DataTable.Title numeric>Revenue</DataTable.Title>
+                  <DataTable.Title numeric>Expenses</DataTable.Title>
+                  <DataTable.Title numeric>Net</DataTable.Title>
+                </DataTable.Header>
+
+                {[
+                  {k: 'Green View / 201 / John', r: 52000, e: 17500},
+                  {k: 'City Heights / 305 / Riya', r: 48000, e: 16000},
+                  {k: 'Lake Shore / 102 / Alex', r: 46000, e: 13000},
+                ].map((row, idx) => {
+                  const net = row.r - row.e;
+                  return (
+                    <DataTable.Row key={idx}>
+                      <DataTable.Cell>
+                        {
+                          row.k.split(' / ')[
+                            scope === 'property' ? 0 : scope === 'unit' ? 1 : 2
+                          ]
+                        }
+                      </DataTable.Cell>
+                      <DataTable.Cell numeric>
+                        ₹{row.r.toLocaleString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell numeric>
+                        ₹{row.e.toLocaleString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell
+                        numeric
+                        style={{color: net >= 0 ? '#2E7D32' : '#C62828'}}>
+                        ₹{net.toLocaleString()}
+                      </DataTable.Cell>
+                    </DataTable.Row>
+                  );
+                })}
+              </DataTable>
+
+              <Gap size="sm" />
+              <StandardText
+                size="md"
+                fontWeight="bold"
+                style={{textAlign: 'center'}}>
+                Expenses Breakdown
+              </StandardText>
+              <PieChart
+                data={expensesBreakdown}
+                width={screenWidth - 40}
+                height={210}
+                accessor="population"
+                backgroundColor="transparent"
+                chartConfig={{
+                  backgroundColor: '#fff',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                }}
+                paddingLeft="12"
+              />
+            </StandardCard>
+
+            <Gap size="md" />
+
+            {/* Forecasts */}
+            <StandardCard>
+              <StandardText size="lg" fontWeight="bold" textAlign="center">
+                Forecast — Revenue & Vacancy Loss (Next 6 Months)
+              </StandardText>
+              <LineChart
+                data={{
+                  labels: months,
+                  datasets: [
+                    {data: revenueByMonth.map(v => v * 1.05)}, // simple uplift forecast
+                    {data: vacancyLossByMonth.map(v => Math.max(5, v - 1))}, // simple improvement
+                  ],
+                  legend: ['Revenue (₹k)', 'Vacancy Loss (₹k)'],
+                }}
+                width={screenWidth - 40}
+                height={240}
+                yAxisSuffix="k"
+                chartConfig={{
+                  backgroundColor: '#fff',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                }}
+              />
+            </StandardCard>
+
+            <Gap size="md" />
+
+            {/* Issues & Maintenance Board */}
+            <StandardCard>
+              <View style={styles.rowBetween}>
+                <StandardText size="lg" fontWeight="bold">
+                  Issues & Maintenance
+                </StandardText>
+                <Button mode="outlined" onPress={() => {}}>
+                  New Ticket
+                </Button>
+              </View>
+              {maintenanceRequests.map(req => (
+                <List.Item
+                  key={req.id}
+                  title={req.title}
+                  description={`Priority: ${req.priority}`}
+                  left={() => (
+                    <MaterialCommunityIcons
+                      name="wrench"
+                      size={22}
+                      color={colors.primary}
+                    />
+                  )}
+                  right={() => <Chip>{req.status}</Chip>}
+                />
+              ))}
+            </StandardCard>
+
+            <Gap size="md" />
+
+            {/* Tenant Leaderboard */}
+            <StandardCard>
+              <StandardText size="lg" fontWeight="bold">
+                Top Tenants
+              </StandardText>
+              {tenants.map(t => (
+                <List.Item
+                  key={t.id}
+                  title={`${t.name} — ${t.room}`}
+                  description={t.status}
+                  left={() => <Avatar.Icon size={36} icon="account-circle" />}
+                  right={() =>
+                    t.status === 'On-time' ? (
+                      <Chip icon="star">Consistent</Chip>
+                    ) : (
+                      <Chip icon="alert">Overdue</Chip>
+                    )
+                  }
+                />
+              ))}
+            </StandardCard>
+
+            <Gap size="md" />
+
+            {/* 🪪 Tenant KYC Status */}
+            {/* 🪪 Tenant KYC Overview */}
+            <StandardCard>
               <View
                 style={{
-                  backgroundColor: colors.white,
-                  padding: 15,
-                  borderRadius: 10,
-                  marginTop: 10,
-                  shadowColor: colors.primary,
-                  shadowOffset: {width: 0, height: 2},
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}>
-                {/* Example row */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    Vacant Beds
+                <StandardText size="lg" fontWeight="bold">
+                  🪪 Tenant KYC
+                </StandardText>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('KYCDetails')}>
+                  <StandardText style={{color: colors.primary}}>
+                    View More
                   </StandardText>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    Notice Period
+                </TouchableOpacity>
+              </View>
+
+              {/* Summary */}
+              <View style={styles.kycSummary}>
+                <View
+                  style={[styles.kycSummaryBox, {backgroundColor: '#4CAF50'}]}>
+                  <StandardText fontWeight="bold" style={styles.kycSummaryText}>
+                    Verified: 12
                   </StandardText>
                 </View>
-
-                {/* Stats row */}
                 <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    {analyticsData?.occupancyStats?.vacantRooms || 0} /{' '}
-                    {analyticsData?.occupancyStats?.totalRooms || 0}
-                  </StandardText>
-                  <StandardText
-                    textAlign="center"
-                    size="md"
-                    fontWeight="bold"
-                    style={{flex: 1}}>
-                    {analyticsData?.tenantStats?.longTermTenants || 0} /{' '}
-                    {analyticsData?.tenantStats?.totalTenants || 0}
+                  style={[styles.kycSummaryBox, {backgroundColor: '#FFC107'}]}>
+                  <StandardText fontWeight="bold" style={styles.kycSummaryText}>
+                    Pending: 3
                   </StandardText>
                 </View>
-
-                {/* Action Buttons */}
                 <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginVertical: 10,
-                    alignItems: 'center',
-                  }}>
-                  <Button
-                    mode="contained"
-                    buttonColor={colors.white}
-                    style={{
-                      width: '45%',
-                      alignSelf: 'center',
-                      marginTop: 10,
-                      marginBottom: 10,
-                      borderRadius: 5,
-                      borderColor: colors.black,
-                      borderWidth: 1,
+                  style={[styles.kycSummaryBox, {backgroundColor: '#F44336'}]}>
+                  <StandardText fontWeight="bold" style={styles.kycSummaryText}>
+                    Rejected: 1
+                  </StandardText>
+                </View>
+              </View>
+
+              {/* Last 3 KYCs */}
+              <StandardText
+                size="md"
+                fontWeight="semibold"
+                style={{marginTop: 10}}>
+                Last 3 KYC Submissions
+              </StandardText>
+              {[
+                {name: 'Ravi Kumar', status: 'verified', date: '2025-08-30'},
+                {name: 'Amit Sharma', status: 'pending', date: '2025-08-29'},
+                {name: 'Neha Verma', status: 'rejected', date: '2025-08-28'},
+              ].map((kyc, index) => (
+                <View key={index} style={styles.kycRow}>
+                  <View>
+                    <StandardText>{kyc.name}</StandardText>
+                    <StandardText size="sm" style={{color: '#666'}}>
+                      Submitted: {kyc.date}
+                    </StandardText>
+                  </View>
+                  <View
+                    style={[
+                      styles.kycBadge,
+                      kyc.status === 'verified'
+                        ? {backgroundColor: '#4CAF50'}
+                        : kyc.status === 'pending'
+                        ? {backgroundColor: '#FFC107'}
+                        : {backgroundColor: '#F44336'},
+                    ]}>
+                    <StandardText fontWeight="bold" style={styles.kycText}>
+                      {kyc.status.charAt(0).toUpperCase() + kyc.status.slice(1)}
+                    </StandardText>
+                  </View>
+                </View>
+              ))}
+            </StandardCard>
+
+            <Gap size="md" />
+
+            {/* Occupancy Grid */}
+            <StandardCard>
+              <StandardText size="lg" fontWeight="bold">
+                Room Occupancy Map
+              </StandardText>
+              <View style={styles.gridWrapper}>
+                {occupancyGrid.map((room, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[
+                      styles.roomBox,
+                      {backgroundColor: getRoomColor(room.status)},
+                    ]}
+                    onPress={() => {
+                      setSelectedAction({label: 'RoomDetails', data: room});
+                      bottomSheetModalRef.current?.present();
                     }}>
-                    <StandardText>VIEW</StandardText>
-                  </Button>
-                  <Button
-                    mode="contained"
-                    buttonColor={colors.white}
-                    style={{
-                      width: '45%',
-                      alignSelf: 'center',
-                      marginTop: 10,
-                      marginBottom: 10,
-                      borderRadius: 5,
-                      borderColor: colors.black,
-                      borderWidth: 1,
-                    }}>
-                    <StandardText>VIEW</StandardText>
-                  </Button>
+                    <StandardText fontWeight="bold" style={styles.roomText}>
+                      {room.room}
+                    </StandardText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={styles.legendContainer}>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[styles.legendColor, {backgroundColor: '#4CAF50'}]}
+                  />
+                  <StandardText>Occupied</StandardText>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[styles.legendColor, {backgroundColor: '#F44336'}]}
+                  />
+                  <StandardText>Overdue</StandardText>
+                </View>
+                <View style={styles.legendItem}>
+                  <View
+                    style={[styles.legendColor, {backgroundColor: '#BDBDBD'}]}
+                  />
+                  <StandardText>Vacant</StandardText>
                 </View>
               </View>
             </StandardCard>
-            <Gap size="lg" />
-            <Gap size="lg" />
-            <Gap size="lg" />
-            <Gap size="lg" />
-          </ScrollView>
-        </View>
 
-        {/* Bottom Sheet */}
-        <BottomSheetModal ref={bottomSheetModalRef} snapPoints={['90%']}>
-          <BottomSheetView style={styles.contentContainer}>
-            {selectedAction?.label === 'Add Tenant' && (
-              <AddTenant handleClosePress={handleClosePress} />
-            )}
-            {selectedAction?.label === 'Announce' && (
-              <SendAnnouncement handleClosePress={handleClosePress} />
-            )}
-            {selectedAction?.label === 'Payments' && (
-              <RecordPayment handleClosePress={handleClosePress} />
-            )}
-            {selectedAction?.label === 'Add Room' && (
-              <AddRoom handleClosePress={handleClosePress} />
-            )}
-            {selectedAction?.label === 'Contacts' && (
-              <Contacts handleClosePress={handleClosePress} />
-            )}
-          </BottomSheetView>
-        </BottomSheetModal>
+            <Gap size="xl" />
+          </ScrollView>
+
+          {/* FAB */}
+          <FAB
+            icon="plus"
+            color={colors.white}
+            style={styles.fab}
+            onPress={() => bottomSheetModalRef.current?.present()}
+          />
+
+          {/* Bottom Sheet */}
+          <BottomSheetModal ref={bottomSheetModalRef} snapPoints={['88%']}>
+            <BottomSheetView style={styles.sheetContent}>
+              {/* Contextual sheet content */}
+              {selectedAction?.label === 'Add Tenant' && (
+                <AddTenant handleClosePress={handleClosePress} />
+              )}
+              {selectedAction?.label === 'Announce' && (
+                <SendAnnouncement handleClosePress={handleClosePress} />
+              )}
+              {selectedAction?.label === 'Payments' && (
+                <RecordPayment handleClosePress={handleClosePress} />
+              )}
+              {selectedAction?.label === 'Add Room' && (
+                <AddRoom handleClosePress={handleClosePress} />
+              )}
+              {selectedAction?.label === 'Contacts' && (
+                <Contacts handleClosePress={handleClosePress} />
+              )}
+              {selectedAction?.label === 'RoomDetails' && (
+                <View style={{width: '100%'}}>
+                  <StandardText size="lg" fontWeight="bold">
+                    Room {selectedAction.data.room}
+                  </StandardText>
+                  <Gap size="sm" />
+                  <View style={styles.rowBetween}>
+                    <Chip icon="home" style={{marginRight: 6}}>
+                      {selectedAction.data.status}
+                    </Chip>
+                    <Button mode="contained" onPress={() => {}}>
+                      View Tenants
+                    </Button>
+                  </View>
+                  <Gap size="sm" />
+                  <StandardText size="sm">Next rent due: 05 Sep</StandardText>
+                  <StandardText size="sm">
+                    Last payment: 05 Aug (₹8,000)
+                  </StandardText>
+                  <Gap size="md" />
+                  <Button mode="outlined" onPress={() => {}}>
+                    Send Reminder
+                  </Button>
+                </View>
+              )}
+              {!selectedAction && (
+                <CircularIconsWithText onActionPress={handleQuickActionPress} />
+              )}
+            </BottomSheetView>
+          </BottomSheetModal>
+        </View>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  contentContainer: {
-    flex: 1,
+  container: {flex: 1, backgroundColor: colors.background},
+
+  bannerCard: {
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#FFE4EC',
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    marginHorizontal: 0,
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    fontFamily: 'Metropolis-Regular',
+  },
+
+  kpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  kpiCard: {width: '32%', padding: 12, borderRadius: 12},
+
+  rowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  // Occupancy grid
+  gridWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+    justifyContent: 'space-between',
+  },
+  roomBox: {
+    width: '31%',
+    aspectRatio: 1,
+    marginBottom: 10,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  roomText: {color: '#fff', fontSize: 16},
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 6,
+  },
+  legendItem: {flexDirection: 'row', alignItems: 'center'},
+  legendColor: {width: 16, height: 16, borderRadius: 4, marginRight: 6},
+
+  fab: {
+    position: 'absolute',
+    bottom: 25,
+    right: 25,
+    backgroundColor: colors.primary,
+  },
+
+  sheetContent: {flex: 1, width: '100%', padding: 16, alignItems: 'flex-start'},
+  kycSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  kycSummaryBox: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  kycSummaryText: {
+    color: '#fff',
+  },
+  kycRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  kycBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  kycText: {
+    color: '#fff',
   },
 });
 
