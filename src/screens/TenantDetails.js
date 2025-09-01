@@ -159,7 +159,7 @@ const TenantDetails = ({navigation, route}) => {
           icon={'home'}
           heading="Room & Rent Details"
           content={
-            <View style={styles.container}>
+            <View>
               <DetailRow label="Room" value={tenant.room?.name} />
               <DetailRow label="Rent Amount" value={`₹${tenant.rent_amount}`} />
               <DetailRow
@@ -185,7 +185,7 @@ const TenantDetails = ({navigation, route}) => {
           icon={'account-group'}
           heading="Family & Emergency Contacts"
           content={
-            <View style={styles.container}>
+            <View>
               {tenant.emergency_contact && (
                 <DetailRow
                   label="Emergency Contact"
@@ -209,7 +209,7 @@ const TenantDetails = ({navigation, route}) => {
           icon={'credit-card'}
           heading="Payment History"
           content={
-            <View style={styles.container}>
+            <View>
               {tenant.payments && tenant.payments.length > 0 ? (
                 tenant.payments
                   .slice(0, 3)
@@ -311,7 +311,6 @@ const DetailRow = ({icon, label, value, isMultiline}) => (
 );
 
 const styles = StyleSheet.create({
-  container: {paddingTop: 10},
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

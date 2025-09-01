@@ -7,11 +7,7 @@ export const menuItems = [
   {
     label: 'Rooms & Beds',
     icon: 'bed-outline',
-    children: [
-      {label: 'All Rooms', route: 'AllRooms'},
-      {label: 'Vacant Beds', route: 'VacantBeds'},
-      {label: 'Under Notice', route: 'NoticeBeds'},
-    ],
+    route: 'Rooms',
   },
   {
     label: 'Tenants',
@@ -58,4 +54,13 @@ export const menuItems = [
     icon: 'help-circle-outline',
     route: 'Support',
   },
+  //   {
+  //   label: 'Rooms & Beds',
+  //   icon: 'bed-outline',
+  //   children: [
+  //     {label: 'All Rooms', route: 'AllRooms'},
+  //     {label: 'Vacant Beds', route: 'VacantBeds'},
+  //     {label: 'Under Notice', route: 'NoticeBeds'},
+  //   ],
+  // },
 ];

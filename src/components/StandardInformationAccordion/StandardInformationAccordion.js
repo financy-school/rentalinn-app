@@ -18,18 +18,19 @@ const AnimatedBtn = Animated.createAnimatedComponent(TouchableHighlight);
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 const StandardInformationAccordion = ({heading, icon, content}) => {
-  const {colors} = useTheme(); // 🎨 get theme colors
+  const {colors} = useTheme();
 
   const [expanded, setExpanded] = useState(false);
   const [measured, setMeasured] = useState(false);
+
   const contentHeight = useSharedValue(0);
   const expandHeight = useSharedValue(0);
-  const rotate = useSharedValue('0deg');
+  const rotate = useSharedValue(0); // numeric degrees
 
   const toggleAccordion = () => {
     setExpanded(prev => {
       const next = !prev;
-      rotate.value = withTiming(next ? '180deg' : '0deg');
+      rotate.value = withTiming(next ? 180 : 0, {duration: 300});
       expandHeight.value = withTiming(next ? contentHeight.value : 0, {
         duration: 300,
       });
@@ -38,24 +39,25 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
   };
 
   const rotateStyle = useAnimatedStyle(() => ({
-    transform: [{rotate: rotate.value}],
+    transform: [{rotate: `${rotate.value}deg`}],
   }));
 
+  // ✅ use maxHeight so text won't get clipped
   const expandStyle = useAnimatedStyle(() => ({
-    height: expandHeight.value,
+    maxHeight: expandHeight.value,
     overflow: 'hidden',
   }));
 
   const onContentLayout = event => {
     const height = event.nativeEvent.layout.height;
     if (!measured && height > 0) {
-      contentHeight.value = height;
+      contentHeight.value = height + 8; // ✅ add buffer
       setMeasured(true);
     }
   };
 
   return (
-    <View style={{position: 'relative'}}>
+    <View>
       <StandardCard>
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -64,12 +66,12 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
               <View style={styles.iconWrapper}>
                 <MaterialCommunityIcons
                   name={icon}
-                  size={35}
-                  color={colors.onSurface} // ✅ theme-aware icon color
+                  size={25}
+                  color={colors.onSurface}
                 />
               </View>
             )}
-            <StandardText fontWeight="bold" size="lg" color="default_gray">
+            <StandardText fontWeight="semibold" size="lg" color="default_gray">
               {heading}
             </StandardText>
           </View>
@@ -80,12 +82,14 @@ const StandardInformationAccordion = ({heading, icon, content}) => {
               fadedColorOpacity,
             )}
             onPress={toggleAccordion}
-            style={[styles.dropDownIcon, rotateStyle]}>
-            <StandardSvg
-              icon={'arrow-down-drop-circle'}
-              size="sm"
-              color={colors.primary}
-            />
+            style={styles.dropDownIcon}>
+            <Animated.View style={rotateStyle}>
+              <StandardSvg
+                icon="arrow-down-drop-circle"
+                size="sm"
+                color={colors.primary}
+              />
+            </Animated.View>
           </AnimatedBtn>
         </View>
 
@@ -132,8 +136,6 @@ const styles = StyleSheet.create({
   hiddenMeasure: {
     position: 'absolute',
     opacity: 0,
-    zIndex: -1,
-    left: -9999,
   },
   animatedContent: {
     overflow: 'hidden',

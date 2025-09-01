@@ -170,6 +170,7 @@ const Rooms = ({navigation}) => {
             left={<PaperInput.Icon icon="magnify" />}
             underlineColor="transparent"
             activeUnderlineColor="transparent"
+            contentStyle={{fontFamily: 'Metropolis-Medium'}}
             theme={{
               roundness: 25,
               colors: {

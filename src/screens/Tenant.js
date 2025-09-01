@@ -102,17 +102,17 @@ const Tenants = ({navigation}) => {
               placeholder="Search Tenants..."
               value={search}
               onChangeText={setSearch}
-              style={styles.searchBar}
+              style={[styles.searchBar, {fontFamily: 'Metropolis-Medium'}]}
               left={<PaperInput.Icon icon="magnify" />}
               underlineColor="transparent"
               activeUnderlineColor="transparent"
+              contentStyle={{fontFamily: 'Metropolis-Medium'}}
               theme={{
                 roundness: 25,
                 colors: {
                   background: '#fff',
                   text: '#000',
                   placeholder: '#888',
-                  fontFamily: 'Metropolis-Medium',
                 },
               }}
             />
