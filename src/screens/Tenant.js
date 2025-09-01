@@ -108,7 +108,12 @@ const Tenants = ({navigation}) => {
               activeUnderlineColor="transparent"
               theme={{
                 roundness: 25,
-                colors: {background: '#fff', text: '#000', placeholder: '#888'},
+                colors: {
+                  background: '#fff',
+                  text: '#000',
+                  placeholder: '#888',
+                  fontFamily: 'Metropolis-Medium',
+                },
               }}
             />
 
@@ -132,6 +137,7 @@ const Tenants = ({navigation}) => {
                   ]}
                   textStyle={{
                     color: selectedFilter === option.key ? '#fff' : '#000',
+                    fontFamily: 'Metropolis-Medium',
                   }}>
                   {option.label} ({option.value})
                 </Chip>
@@ -296,6 +302,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 25,
     elevation: 2,
+    fontFamily: 'Metropolis-Medium',
   },
   chip: {marginRight: 10, borderRadius: 20, elevation: 1},
   card: {

@@ -136,9 +136,16 @@ const Rooms = ({navigation}) => {
   // 🔹 Share
   const handleShareRoom = async room => {
     try {
-      const message = `Room Details:\nName: ${room.name || room.id}\nStatus: ${
-        room.status
-      }\nBeds: ${room.bedCount || 0}\nSize: ${room.area} sqft`;
+      const message =
+        `🏠 Room Details\n` +
+        `Name: ${room.name || `Room ${room.id}`}\n` +
+        `Beds: ${room.bedCount ?? 'N/A'}\n` +
+        `Bathrooms: ${room.bathroomCount ?? 'N/A'}\n` +
+        `Floor: ${room.floorNumber ?? 'N/A'}\n` +
+        `Area Type: ${room.areaType ? room.areaType + ' sqft' : 'N/A'}\n` +
+        `Rent: ₹${room.rentAmount ?? 'N/A'}\n` +
+        (room.amenities ? `Amenities: ${room.amenities}\n` : '') +
+        (room.description ? `Description: ${room.description}\n` : '');
 
       await Share.open({
         title: 'Share Room',
@@ -165,7 +172,12 @@ const Rooms = ({navigation}) => {
             activeUnderlineColor="transparent"
             theme={{
               roundness: 25,
-              colors: {background: '#fff', text: '#000', placeholder: '#888'},
+              colors: {
+                background: '#fff',
+                text: '#000',
+                placeholder: '#888',
+                fontFamily: 'Metropolis-Medium',
+              },
             }}
           />
 
@@ -189,6 +201,7 @@ const Rooms = ({navigation}) => {
                 ]}
                 textStyle={{
                   color: selectedFilter === option.key ? '#fff' : '#000',
+                  fontFamily: 'Metropolis-Medium',
                 }}>
                 {option.label} ({option.value})
               </Chip>
@@ -384,6 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 25,
     elevation: 2,
+    fontFamily: 'Metropolis-Medium',
   },
   textWrapper: {justifyContent: 'center', alignItems: 'center', flex: 1},
   card: {marginTop: 14, borderRadius: 16, overflow: 'hidden', elevation: 3},
