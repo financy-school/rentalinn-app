@@ -93,13 +93,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.financyapp"
+    namespace "com.rentalinn"
     defaultConfig {
-        applicationId "com.financyapp"
+        applicationId "com.rentalinn"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.2"
+        versionCode 4
+        versionName "1.0"
     }
 
     splits {

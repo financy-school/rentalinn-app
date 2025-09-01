@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -15,23 +9,19 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import {
-  Appbar,
-  Avatar,
-  Button,
-  Chip,
-  Menu,
-  Text,
-  useTheme,
-} from 'react-native-paper';
+import {Avatar, Chip, Menu, Text} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import {ThemeContext} from '../context/ThemeContext';
 import StandardText from '../components/StandardText/StandardText';
 import StandardCard from '../components/StandardCard/StandardCard';
 import Gap from '../components/Gap/Gap';
 import colors from '../theme/color';
-import {getDocument, getTenants} from '../services/NetworkUtils'; // adjust path if needed
+import {
+  deleteTenant,
+  getDocument,
+  getTenants,
+  putTenantOnNotice,
+} from '../services/NetworkUtils';
 import {CredentialsContext} from '../context/CredentialsContext';
 
 const RoomDetails = ({navigation, route}) => {
@@ -404,51 +394,27 @@ const RoomDetails = ({navigation, route}) => {
         </StandardText>
 
         {tenants.map(tenant => (
-          <StandardCard key={tenant.id} style={{marginTop: 10}}>
-            <TouchableOpacity onPress={() => {}}>
-              {/* Row: Avatar + Info Section */}
-              <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                {/* LEFT: Avatar */}
-                {/* <Avatar.Image
-               size={48}
-               source={require('../assets/avatar-placeholder.png')} // Replace with actual avatar
-               style={{ marginRight: 12, marginTop: 4 }}
-             /> */}
-
-                <MaterialCommunityIcons
-                  name="account-circle"
-                  size={120}
-                  style={{
-                    marginRight: 12,
-                    marginTop: 4,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    alignSelf: 'center',
+          <StandardCard key={tenant.id} style={styles.card}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('TenantDetails', {tenant})}>
+              <View style={styles.row}>
+                {/* Avatar */}
+                <Avatar.Image
+                  size={60}
+                  source={{
+                    uri: 'https://avatar.iran.liara.run/public/37',
                   }}
+                  style={{marginRight: 14}}
                 />
 
-                {/* RIGHT: Details */}
+                {/* Info Section */}
                 <View style={{flex: 1}}>
-                  {/* Header Row: Name Tag + 3-dot menu */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 6,
-                    }}>
-                    <View
-                      style={{
-                        borderRadius: 15,
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                      }}>
-                      <StandardText fontWeight="bold" size="xl">
-                        {tenant.name}
-                      </StandardText>
-                    </View>
+                  <View style={styles.rowBetween}>
+                    <StandardText fontWeight="bold" size="lg">
+                      {tenant.name}
+                    </StandardText>
 
+                    {/* Menu */}
                     <Menu
                       visible={menuVisible && anchorBedId === tenant.id}
                       onDismiss={() => {
@@ -460,81 +426,119 @@ const RoomDetails = ({navigation, route}) => {
                           onPress={() => {
                             setMenuVisible(true);
                             setAnchorBedId(tenant.id);
-                          }}
-                          style={{paddingHorizontal: 8, paddingVertical: 4}}>
+                          }}>
                           <MaterialCommunityIcons
                             name="dots-vertical"
-                            size={20}
-                            color="#888"
+                            size={22}
+                            color="#444"
                           />
                         </TouchableOpacity>
                       }>
                       <Menu.Item onPress={() => {}} title="Edit" />
                       <Menu.Item onPress={() => {}} title="Share" />
-                      <Menu.Item onPress={() => {}} title="Send Message" />
-                      <Menu.Item onPress={() => {}} title="Delete" />
+                      <Menu.Item
+                        onPress={() => {
+                          putTenantOnNotice(
+                            credentials.accessToken,
+                            tenant.id,
+                            {notice: true},
+                          );
+                        }}
+                        title="Put on Notice"
+                      />
+                      <Menu.Item
+                        onPress={async () => {
+                          await deleteTenant(
+                            credentials.accessToken,
+                            tenant.id,
+                          );
+                          // Refetch tenants after deletion
+                          const res = await getTenants(
+                            credentials.accessToken,
+                            credentials.property_id,
+                            room.id,
+                          );
+                          setTenants(res.data);
+                        }}
+                        title="Delete"
+                      />
                     </Menu>
                   </View>
 
-                  {/* Detail Rows */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 4,
-                    }}>
-                    <MaterialCommunityIcons name="bed" size={20} color="#333" />
-                    <StandardText style={{marginLeft: 6}}>
-                      Room:{' '}
-                      <Text style={{fontWeight: 'bold'}}>{room.areaType}</Text>
-                    </StandardText>
+                  {/* Quick badges */}
+                  <View style={{flexDirection: 'row', marginTop: 6}}>
+                    {tenant.has_dues && (
+                      <Chip
+                        style={styles.badgeDues}
+                        textStyle={{color: '#fff'}}>
+                        Dues
+                      </Chip>
+                    )}
+                    {tenant.is_on_notice && (
+                      <Chip
+                        style={styles.badgeNotice}
+                        textStyle={{color: '#fff'}}>
+                        Notice
+                      </Chip>
+                    )}
                   </View>
 
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 4,
-                    }}>
-                    <MaterialCommunityIcons
-                      name="calendar-alert"
-                      size={20}
-                      color="#333"
-                    />
-                    <StandardText style={{marginLeft: 6}}>
-                      Under Notice:{' '}
-                      <Text style={{fontWeight: 'bold'}}>Yes</Text>
-                    </StandardText>
-                  </View>
+                  {/* Small details */}
+                  <View style={{marginTop: 8}}>
+                    <View style={styles.detailRow}>
+                      <MaterialCommunityIcons
+                        name="alert-circle"
+                        size={18}
+                        color="#555"
+                      />
+                      <StandardText style={styles.detailText}>
+                        Under Notice : {tenant.is_on_notice ? 'Yes' : 'No'}
+                      </StandardText>
+                    </View>
 
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 4,
-                    }}>
-                    <MaterialCommunityIcons
-                      name="cash"
-                      size={20}
-                      color="#333"
-                    />
-                    <StandardText style={{marginLeft: 6}}>
-                      Rent Due: <Text style={{fontWeight: 'bold'}}>Yes</Text>
-                    </StandardText>
-                  </View>
+                    <View style={styles.detailRow}>
+                      <MaterialCommunityIcons
+                        name="cash"
+                        size={18}
+                        color="#555"
+                      />
+                      <StandardText style={styles.detailText}>
+                        ₹{tenant.room.rentAmount}
+                      </StandardText>
+                    </View>
 
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <MaterialCommunityIcons
-                      name="alert-circle-outline"
-                      size={20}
-                      color="#333"
-                    />
-                    <StandardText style={{marginLeft: 6}}>
-                      Joined:{' '}
-                      <Text style={{fontWeight: 'bold'}}>
-                        {tenant.check_in_date}
-                      </Text>
-                    </StandardText>
+                    <View style={styles.detailRow}>
+                      <MaterialCommunityIcons
+                        name="alert-circle"
+                        size={18}
+                        color="#555"
+                      />
+                      <StandardText style={styles.detailText}>
+                        {tenant.has_dues ? 'Dues' : 'No Dues'}
+                      </StandardText>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <MaterialCommunityIcons
+                        name="calendar-check"
+                        size={18}
+                        color="#555"
+                      />
+                      <StandardText style={styles.detailText}>
+                        Joined: {tenant.check_in_date}
+                      </StandardText>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <MaterialCommunityIcons
+                        name="calendar-check"
+                        size={18}
+                        color="#555"
+                      />
+                      <StandardText style={styles.detailText}>
+                        Lease End: {tenant.check_out_date}
+                      </StandardText>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -547,5 +551,52 @@ const RoomDetails = ({navigation, route}) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {flex: 1, backgroundColor: colors.background, marginTop: 25},
+  searchBar: {
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    elevation: 2,
+  },
+  chip: {marginRight: 10, borderRadius: 20, elevation: 1},
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  row: {flexDirection: 'row', alignItems: 'center'},
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 4},
+  detailText: {marginLeft: 6, color: '#444'},
+  badgeDues: {
+    backgroundColor: '#e53935',
+    marginRight: 6,
+    height: 26,
+  },
+  badgeNotice: {
+    backgroundColor: '#ff9800',
+    marginRight: 6,
+    height: 26,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 40,
+    right: 30,
+    borderRadius: 30,
+    backgroundColor: colors.primary,
+  },
+});
 
 export default RoomDetails;

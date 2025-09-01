@@ -329,9 +329,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 40,
     right: 30,
     borderRadius: 30,
+    bottom: 120,
     backgroundColor: colors.primary,
   },
 });
